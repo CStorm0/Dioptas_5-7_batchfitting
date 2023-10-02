@@ -41,6 +41,7 @@ def main():
     app = QtWidgets.QApplication([])
     sys.excepthook = excepthook
     print("Dioptas {}".format(__version__))
+    print("Here we go!")
 
     if _platform == "linux" or _platform == "linux2" or _platform == "win32" or _platform == 'cygwin':
         app.setStyle('plastique')

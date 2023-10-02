@@ -13,6 +13,10 @@ from .util.HelperModule import FileNameIterator
 
 logger = logging.getLogger(__name__)
 
+from scipy.optimize import curve_fit
+import pandas as pd
+import numpy as np
+
 
 class BatchModel(QtCore.QObject):
     """
@@ -380,3 +384,76 @@ def iterate_folder(folder_path, step):
             len=right_ind - left_ind,
             right_str=folder_path[right_ind:])
     return new_directory_str
+
+
+class BatchFitModel(BatchModel):
+    """
+    Class describe a model for batch integration
+    """
+
+    def __init__(self, calibration_model, mask_model):
+        super(BatchFitModel, self).__init__(calibration_model,mask_model)
+        
+        
+        print("Using BatchFitModel")
+        
+    
+    def gaussian(self, x,a,x0,sigma):
+        # define gaussian function
+        return a*np.exp(-np.power(x-x0, 2)/(2*np.power(sigma, 2)))
+    
+
+    
+    def convert_x_val_to_tth(self, xval):        
+        scale = (self.binning[-1] - self.binning[0]) / self.binning.shape[0]
+        tth = xval * scale + self.binning[0]
+        return tth
+    
+    def convert_tth_val_to_x(self, tth_val):
+        scale = (self.binning[-1] - self.binning[0]) / self.binning.shape[0]
+        x = (tth_val-self.binning[0])/scale
+        return x
+    
+    def find_peaks(self, bounds):
+        
+        bound_ints = [int(limit) for limit in bounds]
+        print("Bounds are: ", bound_ints)
+        
+        self.peak_fit_results = []
+        self.peak_fit_errs = []
+        
+        #print("Data: ", self.data)
+
+        pd.DataFrame(self.data).to_excel('Data.xlsx')
+        
+        for img_index in range(self.n_img):
+            pattern_y = self.data[img_index]
+            y_data = pattern_y[bound_ints[0]:bound_ints[1]]
+                        
+            x_range = np.arange(bound_ints[0], bound_ints[1])
+            y_data = pattern_y[bound_ints[0]:bound_ints[1]]-y_data.min()
+            
+            pd.DataFrame({'x': x_range, 'y': y_data}).to_excel('xy_data.xlsx')
+
+            self.x0_guess = x_range[y_data.argmax()]
+            self.a_guess = y_data.max()/2
+            self.sigma_guess = self.convert_tth_val_to_x(0.1)
+            
+            #print("x0_guess: ", self.x0_guess)
+            
+            try:
+                best_vals, covar  = curve_fit(self.gaussian,x_range,y_data,p0=[self.a_guess,self.x0_guess,self.sigma_guess])           
+                #print(best_vals)
+            except:
+                best_vals = np.zeros(3)
+                covar = np.zeros((3,3))
+            self.peak_fit_results.append(best_vals)
+            self.peak_fit_errs.append(covar)
+        
+        peak_fit_errs = np.array(self.peak_fit_errs)
+        peak_fit_results = np.array(self.peak_fit_results)
+        
+        return peak_fit_results, peak_fit_errs
+        
+        
+        

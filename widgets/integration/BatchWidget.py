@@ -43,13 +43,16 @@ class BatchWidget(QtWidgets.QWidget):
 
         # central
         self.file_view_widget = BatchFileViewWidget()
-        self.stack_plot_widget = BatchStackWidget()
+        #self.stack_plot_widget = BatchStackWidget()
+        self.stack_plot_widget = BatchFitStackWidget()
+        self.stack_plot_fitting_widget = BatchFitStackWidget()
         if open_gl:
             self.surface_widget = BatchSurfaceWidget()
         self.options_widget = BatchOptionsWidget()
 
         # bottom
-        self.control_widget = BatchControlWidget()
+        #self.control_widget = BatchControlWidget()
+        self.control_widget = BatchFitControlWidget()
         self.position_widget = BatchImgPositionWidget()
 
         self.create_layout()
@@ -163,6 +166,54 @@ class BatchWidget(QtWidgets.QWidget):
         self.activateWindow()
         self.raise_()
 
+# CStorm
+class BatchFitWidget(BatchWidget):
+    """
+    Class describe a widget for batch integration
+    """
+    def __init__(self, parent=None):
+        super(BatchFitWidget, self).__init__(parent)
+        print("Using BatchFitWidget")
+        
+        self._central_layout.addWidget(self.stack_plot_fitting_widget)
+
+    def activate_files_view(self):
+        self.mode_widget.view_f_btn.setChecked(True)
+
+        self.file_view_widget.show()
+        if open_gl:
+            self.surface_widget.hide()
+        self.stack_plot_widget.hide()
+        self.stack_plot_fitting_widget.hide()
+        self.options_widget.hide()
+
+        self.position_widget.step_raw_widget.show()
+        self.position_widget.step_series_widget.hide()
+        self.control_widget.waterfall_btn.hide()
+        self.control_widget.phases_btn.hide()
+        self.control_widget.autoscale_btn.hide()
+        self.control_widget.normalize_btn.hide()
+        self.control_widget.integrate_btn.show()        
+        
+        self.control_widget.find_peaks_btn.hide()
+        
+    def activate_stack_plot(self):
+        self.position_widget.step_raw_widget.hide()
+        self.position_widget.step_series_widget.show()
+        self.mode_widget.view_2d_btn.setChecked(True)
+
+        self.file_view_widget.hide()
+        self.stack_plot_widget.show()
+        self.options_widget.show()
+        if open_gl:
+            self.surface_widget.hide()
+        self.control_widget.waterfall_btn.show()
+        self.control_widget.phases_btn.show()
+        self.control_widget.autoscale_btn.show()
+        self.control_widget.normalize_btn.show()
+        self.control_widget.integrate_btn.hide() 
+        
+        self.control_widget.find_peaks_btn.show()
 
 class BatchFileViewWidget(QtWidgets.QWidget):
     """
@@ -336,6 +387,49 @@ class BatchModeWidget(QtWidgets.QWidget):
             
         """)
 
+# CStorm
+class BatchModeFittingWidget(BatchModeWidget):
+    def __init__(self):
+        super(BatchModeFittingWidget, self).__init__()
+        
+        self.view_fitting_btn = CheckableFlatButton("Fitting")
+        
+        self.unit_view_group.addButton(self.view_fitting_btn)
+        self._layout.addWidget(self.view_fitting_btn)
+        self.style_widgets()
+        
+    def style_widgets(self):
+        self._layout.setSpacing(0)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+
+        mode_btn_height = 35
+        mode_btn_width = 65
+
+        mode_btns = [self.view_f_btn, self.view_2d_btn, self.view_3d_btn, self.view_fitting_btn]
+
+        for btn in mode_btns:
+            btn.setMinimumWidth(mode_btn_width)
+            btn.setMaximumWidth(mode_btn_width)
+
+            btn.setMinimumHeight(mode_btn_height)
+            btn.setMaximumHeight(mode_btn_height)
+
+        self.view_f_btn.setObjectName("file_btn")
+
+        self.setStyleSheet("""
+            QPushButton {
+               font: normal 12px;
+                border-radius: 0px;
+            }
+            
+            #file_btn {
+                border-radius: 0px;
+                border-top-left-radius: 8px;
+                border-bottom-left-radius: 8px;
+            }
+            
+        """)
+
 
 class BatchStackWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -349,6 +443,21 @@ class BatchStackWidget(QtWidgets.QWidget):
         self._layout.addWidget(self.img_pg_layout)
         self.setLayout(self._layout)
         self._layout.setContentsMargins(0, 0, 0, 0)
+
+# CStorm
+class BatchFitStackWidget(BatchStackWidget):
+    def __init__(self):
+        super(BatchFitStackWidget, self).__init__()
+        
+        print("Using BatchFitStackWidget")
+        # Activate linear_region_item() which already exists. 
+        # The existing implementation exists to define limits on the background
+        # subtraction in the normal 1D integrated view.
+        self.img_view.show_linear_region()
+        
+        # set region item limits in 2th space and turn on Movaable
+        self.img_view.linear_region_item.setRegion((1, 2))
+        self.img_view.linear_region_item.setMovable(True)
 
 
 class BatchOptionsWidget(QtWidgets.QWidget):
@@ -568,6 +677,17 @@ class BatchControlWidget(QtWidgets.QWidget):
         self._layout.setContentsMargins(6, 6, 6, 6)
         self._layout.setSpacing(4)
 
+
+# CStorm
+class BatchFitControlWidget(BatchControlWidget):
+    def __init__(self):
+        super(BatchFitControlWidget, self).__init__()
+        print("Using BatchFitControlWidget")
+        
+        self.find_peaks_btn = FlatButton('Find Peaks')        
+        self._layout.addWidget(self.find_peaks_btn)
+        
+                
 
 class BatchImgPositionWidget(QtWidgets.QWidget):
     def __init__(self):

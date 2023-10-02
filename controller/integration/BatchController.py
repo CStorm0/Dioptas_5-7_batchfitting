@@ -1209,3 +1209,39 @@ class BatchController(object):
         elif self.model.current_configuration.integration_unit == 'q_A^-1':
             self.widget.batch_widget.options_widget.q_btn.setChecked(True)
             self.set_unit_q()
+
+class BatchFitController(BatchController):
+    """
+    The class manages the Image actions in the batch integration Window. It connects the file actions, as
+    well as interaction with the image_view.
+    """
+
+    def __init__(self, widget, dioptas_model):
+        super(BatchFitController, self).__init__(widget, dioptas_model)
+        print("Using BatchFitController")
+                
+        self.widget.batch_widget.control_widget.find_peaks_btn.clicked.connect(self.find_peaks)
+        
+        
+        
+    def find_peaks(self):
+        
+        regionBounds = self.widget.batch_widget.stack_plot_widget.img_view.linear_region_item.getRegion()
+        
+        self.peak_fit_results, self.peak_fit_errs = self.model.batch_model.find_peaks(bounds = regionBounds)    
+        print(self.peak_fit_results)
+        #print(self.peak_fit_errs)
+        
+        self.plot_peaks(self.peak_fit_results[:, 1])
+    
+    def plot_peaks(self, peaks):        
+
+        self.widget.batch_widget.stack_plot_widget.img_view.add_scatter_data(y=peaks, 
+                                                                             x=np.arange(0.5, len(peaks)+0.5))
+
+        #self.widget.batch_widget.stack_plot_widget.img_view.add_scatter_data(x = [1, 2, 3], y=[5, 5, 5])        
+        
+        
+        
+        
+        

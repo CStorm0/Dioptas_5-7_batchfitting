@@ -24,7 +24,7 @@ from qtpy import QtWidgets, QtCore
 
 from ..UtilityWidgets import FileInfoWidget
 from ..EpicsWidgets import MoveStageWidget
-from .BatchWidget import BatchWidget
+from .BatchWidget import BatchWidget, BatchFitWidget
 
 from .CustomWidgets import MouseCurrentAndClickedWidget, MouseUnitCurrentAndClickedWidget
 from .control import IntegrationControlWidget
@@ -86,7 +86,8 @@ class IntegrationWidget(QtWidgets.QWidget):
 
         self.file_info_widget = FileInfoWidget(self)
         self.move_widget = MoveStageWidget(self)
-        self.batch_widget = BatchWidget(self)
+        #self.batch_widget = BatchWidget(self)
+        self.batch_widget = BatchFitWidget(self)
 
         self.img_frame_size = QtCore.QSize(400, 500)
         self.img_frame_position = QtCore.QPoint(0, 0)

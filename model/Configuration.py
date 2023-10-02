@@ -33,6 +33,8 @@ from .util.calc import convert_units
 from . import ImgModel, CalibrationModel, MaskModel, PatternModel, BatchModel
 from .CalibrationModel import DetectorModes
 
+from .BatchModel import BatchFitModel
+
 
 class Configuration(object):
     """
@@ -47,7 +49,8 @@ class Configuration(object):
         self.img_model = ImgModel()
         self.mask_model = MaskModel()
         self.calibration_model = CalibrationModel(self.img_model)
-        self.batch_model = BatchModel(self.calibration_model, self.mask_model)
+        #self.batch_model = BatchModel(self.calibration_model, self.mask_model)
+        self.batch_model = BatchFitModel(self.calibration_model, self.mask_model)
         self.pattern_model = PatternModel()
 
         if working_directories is None:
