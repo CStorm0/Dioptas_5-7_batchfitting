@@ -71,9 +71,9 @@ class BatchWidget(QtWidgets.QWidget):
 
         self._central_layout.addWidget(self.file_view_widget)
         self._central_layout.addWidget(self.stack_plot_widget)
+        self._central_layout.addWidget(self.stack_plot_fitting_widget) # CStorm
         if open_gl:
             self._central_layout.addWidget(self.surface_widget)
-        self._central_layout.addWidget(self.stack_plot_fitting_widget)
         self._central_layout.addWidget(self.options_widget)
 
         self._frame_layout.addLayout(self._top_layout)
@@ -140,7 +140,7 @@ class BatchWidget(QtWidgets.QWidget):
         self.control_widget.autoscale_btn.show()
         self.control_widget.normalize_btn.show()
         self.control_widget.integrate_btn.hide()
-
+    
     def activate_surface_view(self):
         self.position_widget.step_raw_widget.hide()
         self.position_widget.step_series_widget.show()
@@ -178,6 +178,9 @@ class BatchFitWidget(BatchWidget):
         
         #self.mode_widget = BatchModeFittingWidget()
         
+        #self._bottom_layout = 
+        
+        
         self._central_layout.addWidget(self.stack_plot_fitting_widget)
         self.style_widgets()
 
@@ -200,6 +203,7 @@ class BatchFitWidget(BatchWidget):
         self.control_widget.integrate_btn.show()
         
         self.control_widget.find_peaks_btn.hide()
+        self.control_widget.clear_peaks_btn.hide()
         
     def activate_stack_plot(self):
         self.position_widget.step_raw_widget.hide()
@@ -219,6 +223,7 @@ class BatchFitWidget(BatchWidget):
         self.control_widget.integrate_btn.hide() 
         
         self.control_widget.find_peaks_btn.hide()
+        self.control_widget.clear_peaks_btn.hide()
         
     def activate_stack_fitting_plot(self):
         
@@ -234,15 +239,18 @@ class BatchFitWidget(BatchWidget):
         # show current view
         self.stack_plot_fitting_widget.show()
         self.options_widget.show()
+        self.options_widget.q_btn.hide()
+        self.options_widget.d_btn.hide()
         if open_gl:
             self.surface_widget.hide()
-        self.control_widget.waterfall_btn.show()
-        self.control_widget.phases_btn.show()
-        self.control_widget.autoscale_btn.show()
+        self.control_widget.waterfall_btn.hide()
+        self.control_widget.phases_btn.hide()
+        self.control_widget.autoscale_btn.hide()
         self.control_widget.normalize_btn.show()
-        self.control_widget.integrate_btn.hide()         
+        self.control_widget.integrate_btn.hide()
         
         self.control_widget.find_peaks_btn.show()
+        self.control_widget.clear_peaks_btn.show()
 
 class BatchFileViewWidget(QtWidgets.QWidget):
     """
@@ -782,8 +790,10 @@ class BatchFitControlWidget(BatchControlWidget):
         super(BatchFitControlWidget, self).__init__()
         print("Using BatchFitControlWidget")
         
-        self.find_peaks_btn = FlatButton('Find Peaks')        
+        self.find_peaks_btn = FlatButton('Find Peaks')
+        self.clear_peaks_btn = FlatButton('Clear Peaks')
         self._layout.addWidget(self.find_peaks_btn)
+        self._layout.addWidget(self.clear_peaks_btn)
         self.setLayout(self._layout)
         self.set_tooltips()
         self.style_widgets()

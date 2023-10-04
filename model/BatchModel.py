@@ -424,7 +424,7 @@ class BatchFitModel(BatchModel):
         
         #print("Data: ", self.data)
 
-        pd.DataFrame(self.data).to_excel('Data.xlsx')
+        #pd.DataFrame(self.data).to_excel('Data.xlsx')
         
         for img_index in range(self.n_img):
             pattern_y = self.data[img_index]
@@ -432,8 +432,6 @@ class BatchFitModel(BatchModel):
                         
             x_range = np.arange(bound_ints[0], bound_ints[1])
             y_data = pattern_y[bound_ints[0]:bound_ints[1]]-y_data.min()
-            
-            pd.DataFrame({'x': x_range, 'y': y_data}).to_excel('xy_data.xlsx')
 
             self.x0_guess = x_range[y_data.argmax()]
             self.a_guess = y_data.max()/2
@@ -450,10 +448,65 @@ class BatchFitModel(BatchModel):
             self.peak_fit_results.append(best_vals)
             self.peak_fit_errs.append(covar)
         
-        peak_fit_errs = np.array(self.peak_fit_errs)
-        peak_fit_results = np.array(self.peak_fit_results)
+        #peak_fit_errs = np.array(self.peak_fit_errs)
+        #peak_fit_results = np.array(self.peak_fit_results)
         
-        return peak_fit_results, peak_fit_errs
+        self.peak_fit_errs = np.array(self.peak_fit_errs)
+        self.peak_fit_results = np.array(self.peak_fit_results)
+        
+        if len(self.files) == self.n_img:
+
+            self.peak_search_result_df = pd.DataFrame(data={'file_name':[path.split('/')[-1] for path in self.files], 
+                               'x0': self.peak_fit_results[:, 1],
+                               'x0_err': np.sqrt(self.peak_fit_errs[:, 1, 1]),
+                               'a': self.peak_fit_results[:, 0],
+                               'a_err': np.sqrt(self.peak_fit_errs[:, 0, 0]),
+                               'sigma': self.peak_fit_results[:, 2],
+                               'sigma_err': np.sqrt(self.peak_fit_errs[:, 2, 2])
+                               })
+        else:
+            self.peak_search_result_df = pd.DataFrame(data={'file_name':[int(i) for i in np.linspace(0, self.n_img-1, self.n_img)], 
+                               'x0': self.peak_fit_results[:, 1],
+                               'x0_err': np.sqrt(self.peak_fit_errs[:, 1, 1]),
+                               'a': self.peak_fit_results[:, 0],
+                               'a_err': np.sqrt(self.peak_fit_errs[:, 0, 0]),
+                               'sigma': self.peak_fit_results[:, 2],
+                               'sigma_err': np.sqrt(self.peak_fit_errs[:, 2, 2])
+                               })
+        self.peak_search_result_df['tth'] = self.convert_x_val_to_tth(self.peak_search_result_df['x0'])
+        self.peak_search_result_df['tth_err']= self.convert_x_val_to_tth(self.peak_search_result_df['x0_err'])
+        #self.peak_search_result_df['width']= 2*self.convert_x_val_to_tth(self.peak_search_result_df['sigma'])
+        self.peak_search_result_df['width']= (self.convert_x_val_to_tth(self.peak_search_result_df['x0']+self.peak_search_result_df['sigma'])-
+                                              self.convert_x_val_to_tth(self.peak_search_result_df['x0']-self.peak_search_result_df['sigma']))
+        #self.peak_search_result_df['width_err']= 2*self.convert_x_val_to_tth(self.peak_search_result_df['sigma_err'])
+        #self.peak_search_result_df['sigma_unconverted']= self.peak_search_result_df['sigma']
+        #self.peak_search_result_df['sigma']= self.convert_x_val_to_tth(self.peak_search_result_df['sigma'])
+
+        
+        if self.calibration_model.is_calibrated:
+            self.peak_search_result_df['d'] = self.calibration_model.wavelength/(2*np.sin(np.radians(self.peak_search_result_df['tth']/2)))
+        
+        # create a series of boolean masks to filter results
+        # True is a flag to KEEP value
+
+        # peaks where the peak was inside the fitting range
+        self.fitting_range_mask = np.multiply(self.peak_search_result_df['x0']>bounds[0], self.peak_search_result_df['x0']<bounds[1])
+
+
+        # discard peaks with high uncertainties, i.e. x0_err>err_cutoff
+        self.err_cutoff = 0.5
+        self.uncertainty_mask = np.sqrt(self.peak_fit_errs[:, 1, 1])<self.err_cutoff
+
+        # combine the masks
+        self.combined_mask = self.uncertainty_mask*self.fitting_range_mask
+        # filter DataFrame
+        self.peak_search_result_df_filtered = self.peak_search_result_df[self.combined_mask]
+        
+        self.peak_search_result_df_filtered_sparse = self.peak_search_result_df.join(self.peak_search_result_df_filtered, 
+                                                                                     how='left', lsuffix='_raw')[['file_name_raw', 'tth', 'tth_err', 'width', 'a', 'a_err']]
+        
+        
+        return self.peak_fit_results, self.peak_fit_errs
         
         
         

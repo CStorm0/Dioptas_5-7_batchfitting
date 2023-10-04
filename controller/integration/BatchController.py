@@ -1024,6 +1024,8 @@ class BatchController(object):
         surf_view.back_grid.setSpacing(np.nanmax(data) / 8., data.shape[1] / (ticks.shape[0] - 1), 1)
         surf_view.base_grid.setSpacing(1, data.shape[1] / (ticks.shape[0] - 1), 1)
 
+    # Original
+    """
     def update_x_axis(self):
         if self.model.batch_model.binning is None:
             return
@@ -1049,6 +1051,41 @@ class BatchController(object):
 
         self.widget.batch_widget.stack_plot_widget.img_view.bottom_axis_cake.setRange(min_tth, max_tth)
         self.widget.batch_widget.stack_plot_widget.img_view.bottom_axis_cake.setTicks(ticks)
+    """        
+    # CStorm
+    def update_x_axis(self):
+        if self.model.batch_model.binning is None:
+            return
+
+        stack_plot_widget = self.widget.batch_widget.stack_plot_widget
+        
+        if self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
+            print("Using stack_plot_widget")
+        elif self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
+            print("Using stack_plot_fitting_widget")
+            stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget
+            
+        img_view_rect = stack_plot_widget.img_view.img_view_rect()
+        start_x, stop_x = stack_plot_widget.img_view.x_bin_range
+        binning = self.model.batch_model.binning[start_x: stop_x]
+
+        width = img_view_rect.width()
+        left = img_view_rect.left()
+
+        h_scale = (np.max(binning) - np.min(binning)) / binning.shape[0]
+        h_shift = binning[0]
+        min_tth = h_scale * left + h_shift
+        max_tth = h_scale * (left + width) + h_shift
+
+        if self.model.current_configuration.integration_unit == 'q_A^-1':
+            ticks = [self.get_ticks(max_tth, min_tth, 'q_A^-1', '2th_deg')]
+        elif self.model.current_configuration.integration_unit == 'd_A':
+            ticks = [self.get_ticks(min_tth, max_tth, 'd_A', '2th_deg')]
+        else:
+            ticks = None
+
+        stack_plot_widget.img_view.bottom_axis_cake.setRange(min_tth, max_tth)
+        stack_plot_widget.img_view.bottom_axis_cake.setTicks(ticks)    
 
     def get_ticks(self, min_val, max_val, ticks_unit, base_unit, n_ticks=8):
         """
@@ -1088,20 +1125,57 @@ class BatchController(object):
         else:
             res = 0
         return res
+    # Original
+    
+    # def update_y_axis(self):
+    #     """
+    #     #Update y-axis of the batch plot
+    #     """
+    #     if self.model.batch_model.data is None:
+    #         return
+
+    #     y = self.widget.batch_widget.position_widget.step_series_widget.slider.value()
+    #     start, stop, step = self.widget.batch_widget.position_widget.step_series_widget.get_image_range()
+    #     self.widget.batch_widget.stack_plot_widget.img_view.horizontal_line.setValue(y - start)
+
+    #     img_view_box = self.widget.batch_widget.stack_plot_widget.img_view.img_view_box
+    #     data_img_item = self.widget.batch_widget.stack_plot_widget.img_view.data_img_item
+    #     img_data = self.model.batch_model.data[start:stop + 1]
+
+    #     height = img_view_box.viewRect().height()
+    #     bottom = img_view_box.viewRect().top()
+    #     bound = data_img_item.boundingRect().height()
+
+    #     if bound == 0:
+    #         return
+    #     v_scale = img_data.shape[0] / bound
+    #     min_y = v_scale * bottom + start
+    #     max_y = v_scale * (bottom + height) + start
+
+    #     self.widget.batch_widget.stack_plot_widget.img_view.left_axis_cake.setRange(min_y, max_y)
+    
 
     def update_y_axis(self):
         """
-        Update y-axis of the batch plot
+        #Update y-axis of the batch plot
         """
         if self.model.batch_model.data is None:
             return
 
+        stack_plot_widget = self.widget.batch_widget.stack_plot_widget
+        
+        if self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
+            print("Using stack_plot_widget")
+        elif self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
+            print("Using stack_plot_fitting_widget")
+            stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget        
+
         y = self.widget.batch_widget.position_widget.step_series_widget.slider.value()
         start, stop, step = self.widget.batch_widget.position_widget.step_series_widget.get_image_range()
-        self.widget.batch_widget.stack_plot_widget.img_view.horizontal_line.setValue(y - start)
+        stack_plot_widget.img_view.horizontal_line.setValue(y - start)
 
-        img_view_box = self.widget.batch_widget.stack_plot_widget.img_view.img_view_box
-        data_img_item = self.widget.batch_widget.stack_plot_widget.img_view.data_img_item
+        img_view_box = stack_plot_widget.img_view.img_view_box
+        data_img_item = stack_plot_widget.img_view.data_img_item
         img_data = self.model.batch_model.data[start:stop + 1]
 
         height = img_view_box.viewRect().height()
@@ -1114,7 +1188,7 @@ class BatchController(object):
         min_y = v_scale * bottom + start
         max_y = v_scale * (bottom + height) + start
 
-        self.widget.batch_widget.stack_plot_widget.img_view.left_axis_cake.setRange(min_y, max_y)
+        stack_plot_widget.img_view.left_axis_cake.setRange(min_y, max_y)
 
     def integrate(self):
         """
@@ -1275,11 +1349,12 @@ class BatchFitController(BatchController):
         
         regionBounds = self.widget.batch_widget.stack_plot_fitting_widget.img_view.linear_region_item.getRegion()
         
-        self.peak_fit_results, self.peak_fit_errs = self.model.batch_model.find_peaks(bounds = regionBounds)    
-        print(self.peak_fit_results)
+        #self.peak_fit_results, self.peak_fit_errs = self.model.batch_model.find_peaks(bounds = regionBounds)
+        self.model.batch_model.find_peaks(bounds = regionBounds)
+        print(self.model.batch_model.peak_fit_results)
         #print(self.peak_fit_errs)
         
-        self.plot_peaks(self.peak_fit_results[:, 1])
+        self.plot_peaks(self.model.batch_model.peak_fit_results[:, 1])
     
     def plot_peaks(self, peaks):        
 
