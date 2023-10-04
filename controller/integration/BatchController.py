@@ -76,8 +76,8 @@ class BatchController(object):
         self.widget.batch_widget.control_widget.integrate_btn.clicked.connect(self.integrate)
         self.widget.batch_widget.control_widget.waterfall_btn.clicked.connect(self.waterfall_mode)
         self.widget.batch_widget.control_widget.phases_btn.clicked.connect(self.toggle_show_phases)
-        self.widget.batch_widget.mode_widget.view_f_btn.clicked.connect(self.change_view)
-        self.widget.batch_widget.mode_widget.view_2d_btn.clicked.connect(self.change_view)
+        #self.widget.batch_widget.mode_widget.view_f_btn.clicked.connect(self.change_view)
+        #self.widget.batch_widget.mode_widget.view_2d_btn.clicked.connect(self.change_view)
         self.widget.batch_widget.options_widget.scale_log_btn.mouseReleaseEvent = self.change_scale_log
         self.widget.batch_widget.options_widget.scale_lin_btn.mouseReleaseEvent = self.change_scale_lin
         self.widget.batch_widget.options_widget.scale_sqrt_btn.mouseReleaseEvent = self.change_scale_sqrt
@@ -1306,7 +1306,7 @@ class BatchFitController(BatchController):
                 
         self.widget.batch_widget.control_widget.find_peaks_btn.clicked.connect(self.find_peaks)
         
-        self.widget.batch_widget.mode_widget.view_fitting_btn.clicked.connect(self.change_view)
+#        self.widget.batch_widget.mode_widget.view_fitting_btn.clicked.connect(self.change_view)
         
     def change_view(self):
         """

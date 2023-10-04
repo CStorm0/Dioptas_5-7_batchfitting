@@ -6,6 +6,7 @@ from pyqtgraph import GraphicsLayoutWidget, ColorButton
 from ..plot_widgets.ImgWidget import IntegrationBatchWidget
 from .CustomWidgets import MouseCurrentAndClickedWidget
 from ..CustomWidgets import FlatButton, CheckableFlatButton, HorizontalSpacerItem, VerticalSpacerItem, LabelAlignRight, LabelExpandable
+from .control import TabWidgetMinSize
 
 from . import CLICKED_COLOR
 from ... import icons_path
@@ -39,15 +40,21 @@ class BatchWidget(QtWidgets.QWidget):
 
         # top
         self.file_control_widget = BatchFileControlWidget()
-        self.mode_widget = BatchModeFittingWidget() #CStorm
+        #self.mode_widget = BatchModeFittingWidget() #CStorm
 
         # central
         self.file_view_widget = BatchFileViewWidget()
         #self.stack_plot_widget = BatchStackWidget()
         self.stack_plot_widget = BatchStackWidget() #CStorm
         self.stack_plot_fitting_widget = BatchFitStackWidget()
-        if open_gl:
-            self.surface_widget = BatchSurfaceWidget()
+        
+        self.tab_view_widget = TabWidgetMinSize()
+        self.tab_view_widget.addTab(self.file_view_widget, "Files")
+        self.tab_view_widget.addTab(self.stack_plot_widget, "2D")
+        self.tab_view_widget.addTab(self.stack_plot_fitting_widget, "Fitting")
+        
+        #if open_gl:
+        #    self.surface_widget = BatchSurfaceWidget()
         self.options_widget = BatchOptionsWidget()
 
         # bottom
@@ -63,17 +70,18 @@ class BatchWidget(QtWidgets.QWidget):
         self.setAttribute(QtCore.Qt.WA_MacAlwaysShowToolWindow)
         self.setWindowTitle("Batch widget")
 
-        self.activate_files_view()
+        #self.activate_files_view()
 
     def create_layout(self):
         self._top_layout.addWidget(self.file_control_widget)
-        self._top_layout.addWidget(self.mode_widget)
+        #self._top_layout.addWidget(self.mode_widget)
 
-        self._central_layout.addWidget(self.file_view_widget)
-        self._central_layout.addWidget(self.stack_plot_widget)
-        self._central_layout.addWidget(self.stack_plot_fitting_widget) # CStorm
-        if open_gl:
-            self._central_layout.addWidget(self.surface_widget)
+        #self._central_layout.addWidget(self.file_view_widget)
+        #self._central_layout.addWidget(self.stack_plot_widget)
+        #self._central_layout.addWidget(self.stack_plot_fitting_widget) # CStorm
+        self._central_layout.addWidget(self.tab_view_widget) # 
+        #if open_gl:
+        #    self._central_layout.addWidget(self.surface_widget)
         self._central_layout.addWidget(self.options_widget)
 
         self._frame_layout.addLayout(self._top_layout)
@@ -107,59 +115,6 @@ class BatchWidget(QtWidgets.QWidget):
 
     def sizeHint(self):
         return QtCore.QSize(800, 600)
-
-    def activate_files_view(self):
-        self.mode_widget.view_f_btn.setChecked(True)
-
-        self.file_view_widget.show()
-        if open_gl:
-            self.surface_widget.hide()
-        self.stack_plot_widget.hide()
-        self.options_widget.hide()
-
-        self.position_widget.step_raw_widget.show()
-        self.position_widget.step_series_widget.hide()
-        self.control_widget.waterfall_btn.hide()
-        self.control_widget.phases_btn.hide()
-        self.control_widget.autoscale_btn.hide()
-        self.control_widget.normalize_btn.hide()
-        self.control_widget.integrate_btn.show()
-
-    def activate_stack_plot(self):
-        self.position_widget.step_raw_widget.hide()
-        self.position_widget.step_series_widget.show()
-        self.mode_widget.view_2d_btn.setChecked(True)
-
-        self.file_view_widget.hide()
-        self.stack_plot_widget.show()
-        self.options_widget.show()
-        if open_gl:
-            self.surface_widget.hide()
-        self.control_widget.waterfall_btn.show()
-        self.control_widget.phases_btn.show()
-        self.control_widget.autoscale_btn.show()
-        self.control_widget.normalize_btn.show()
-        self.control_widget.integrate_btn.hide()
-    
-    def activate_surface_view(self):
-        self.position_widget.step_raw_widget.hide()
-        self.position_widget.step_series_widget.show()
-
-        self.mode_widget.view_3d_btn.setChecked(True)
-
-        y = self.position_widget.step_series_widget.slider.value()
-        self.surface_widget.surface_view.g_translate = y
-
-        self.file_view_widget.hide()
-        self.stack_plot_widget.hide()
-        self.options_widget.show()
-        self.surface_widget.show()
-
-        self.control_widget.waterfall_btn.hide()
-        self.control_widget.phases_btn.hide()
-        self.control_widget.autoscale_btn.hide()
-        self.control_widget.normalize_btn.hide()
-        self.control_widget.integrate_btn.hide()
 
     def raise_widget(self):
         self.show()
@@ -251,6 +206,24 @@ class BatchFitWidget(BatchWidget):
         
         self.control_widget.find_peaks_btn.show()
         self.control_widget.clear_peaks_btn.show()
+
+
+# Tab version
+class BatchTabWidget(BatchWidget):
+    """
+    Class describe a widget for batch integration
+    """
+    def __init__(self, parent=None):
+        super(BatchTabWidget, self).__init__(parent)
+        print("Using BatchTabWidget")
+    
+        self._central_layout.addWidget(self.tab_view_widget)
+        self.style_widgets()
+        self.file_view_widget.hide()
+        self.stack_plot_widget.hide()
+        self.stack_plot_fitting_widget.hide()
+    
+    
 
 class BatchFileViewWidget(QtWidgets.QWidget):
     """
