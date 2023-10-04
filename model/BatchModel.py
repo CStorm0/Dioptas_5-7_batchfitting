@@ -390,19 +390,13 @@ class BatchFitModel(BatchModel):
     """
     Class describe a model for batch integration
     """
-
     def __init__(self, calibration_model, mask_model):
         super(BatchFitModel, self).__init__(calibration_model,mask_model)
-        
-        
+                
         print("Using BatchFitModel")
-        
-    
+            
     def gaussian(self, x,a,x0,sigma):
-        # define gaussian function
-        return a*np.exp(-np.power(x-x0, 2)/(2*np.power(sigma, 2)))
-    
-
+        return a*np.exp(-np.power(x-x0, 2)/(2*np.power(sigma, 2)))    
     
     def convert_x_val_to_tth(self, xval):        
         scale = (self.binning[-1] - self.binning[0]) / self.binning.shape[0]
@@ -421,8 +415,6 @@ class BatchFitModel(BatchModel):
         
         self.peak_fit_results = []
         self.peak_fit_errs = []
-        
-        #print("Data: ", self.data)
 
         #pd.DataFrame(self.data).to_excel('Data.xlsx')
         
@@ -437,19 +429,13 @@ class BatchFitModel(BatchModel):
             self.a_guess = y_data.max()/2
             self.sigma_guess = self.convert_tth_val_to_x(0.1)
             
-            #print("x0_guess: ", self.x0_guess)
-            
             try:
-                best_vals, covar  = curve_fit(self.gaussian,x_range,y_data,p0=[self.a_guess,self.x0_guess,self.sigma_guess])           
-                #print(best_vals)
+                best_vals, covar  = curve_fit(self.gaussian,x_range,y_data,p0=[self.a_guess,self.x0_guess,self.sigma_guess])                       
             except:
                 best_vals = np.zeros(3)
                 covar = np.zeros((3,3))
             self.peak_fit_results.append(best_vals)
             self.peak_fit_errs.append(covar)
-        
-        #peak_fit_errs = np.array(self.peak_fit_errs)
-        #peak_fit_results = np.array(self.peak_fit_results)
         
         self.peak_fit_errs = np.array(self.peak_fit_errs)
         self.peak_fit_results = np.array(self.peak_fit_results)
@@ -473,16 +459,11 @@ class BatchFitModel(BatchModel):
                                'sigma': self.peak_fit_results[:, 2],
                                'sigma_err': np.sqrt(self.peak_fit_errs[:, 2, 2])
                                })
+        # write 2th, 2th_err, width, and d-spacing
         self.peak_search_result_df['tth'] = self.convert_x_val_to_tth(self.peak_search_result_df['x0'])
         self.peak_search_result_df['tth_err']= self.convert_x_val_to_tth(self.peak_search_result_df['x0_err'])
-        #self.peak_search_result_df['width']= 2*self.convert_x_val_to_tth(self.peak_search_result_df['sigma'])
         self.peak_search_result_df['width']= (self.convert_x_val_to_tth(self.peak_search_result_df['x0']+self.peak_search_result_df['sigma'])-
-                                              self.convert_x_val_to_tth(self.peak_search_result_df['x0']-self.peak_search_result_df['sigma']))
-        #self.peak_search_result_df['width_err']= 2*self.convert_x_val_to_tth(self.peak_search_result_df['sigma_err'])
-        #self.peak_search_result_df['sigma_unconverted']= self.peak_search_result_df['sigma']
-        #self.peak_search_result_df['sigma']= self.convert_x_val_to_tth(self.peak_search_result_df['sigma'])
-
-        
+                                              self.convert_x_val_to_tth(self.peak_search_result_df['x0']-self.peak_search_result_df['sigma']))        
         if self.calibration_model.is_calibrated:
             self.peak_search_result_df['d'] = self.calibration_model.wavelength/(2*np.sin(np.radians(self.peak_search_result_df['tth']/2)))
         
@@ -491,20 +472,16 @@ class BatchFitModel(BatchModel):
 
         # peaks where the peak was inside the fitting range
         self.fitting_range_mask = np.multiply(self.peak_search_result_df['x0']>bounds[0], self.peak_search_result_df['x0']<bounds[1])
-
-
         # discard peaks with high uncertainties, i.e. x0_err>err_cutoff
         self.err_cutoff = 0.5
         self.uncertainty_mask = np.sqrt(self.peak_fit_errs[:, 1, 1])<self.err_cutoff
-
         # combine the masks
         self.combined_mask = self.uncertainty_mask*self.fitting_range_mask
         # filter DataFrame
         self.peak_search_result_df_filtered = self.peak_search_result_df[self.combined_mask]
-        
+        # filter sparse DataFrame
         self.peak_search_result_df_filtered_sparse = self.peak_search_result_df.join(self.peak_search_result_df_filtered, 
                                                                                      how='left', lsuffix='_raw')[['file_name_raw', 'tth', 'tth_err', 'width', 'a', 'a_err']]
-        
         
         return self.peak_fit_results, self.peak_fit_errs
         
