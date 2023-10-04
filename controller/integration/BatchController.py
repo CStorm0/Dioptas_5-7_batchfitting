@@ -761,6 +761,13 @@ class BatchController(object):
             self.update_axes_range()
             self.update_linear_region()
 
+        # CStorm
+        if self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
+            self.widget.batch_widget.stack_plot_fitting_widget.img_view.plot_image(data[start:stop + 1, start_x:stop_x], True,
+                                                                           [start_x, stop_x])
+            self.update_axes_range()
+            self.update_linear_region()
+
         if self.widget.batch_widget.mode_widget.view_3d_btn.isChecked():
             step = int(str(self.widget.batch_widget.position_widget.step_series_widget.step_txt.text()))
             step_min = max(1, int(data[start:stop + 1].size / self.size_threshold))
@@ -806,6 +813,9 @@ class BatchController(object):
             x_min_bin = (bkg_roi[0] - binning[0]) / scale
             x_max_bin = (bkg_roi[1] - binning[0]) / scale
             self.widget.batch_widget.stack_plot_widget.img_view.set_linear_region(x_min_bin, x_max_bin)
+            
+            # CStorm
+            self.widget.batch_widget.stack_plot_fitting_widget.img_view.set_linear_region(x_min_bin, x_max_bin)
 
     def save_data(self):
         """
@@ -1222,11 +1232,48 @@ class BatchFitController(BatchController):
                 
         self.widget.batch_widget.control_widget.find_peaks_btn.clicked.connect(self.find_peaks)
         
+        self.widget.batch_widget.mode_widget.view_fitting_btn.clicked.connect(self.change_view)
         
+    def change_view(self):
+        """
+        Change between 2D, 3D and file views, with added support for Fitting view
+        """
+        if self.widget.batch_widget.mode_widget.view_f_btn.isChecked(): # Files view
+            self.widget.batch_widget.activate_files_view()
+            n_img_all = self.model.batch_model.n_img_all
+            if n_img_all is not None:
+                self.set_navigation_raw((0, n_img_all - 1))
+
+        elif self.widget.batch_widget.mode_widget.view_3d_btn.isChecked(): # 3D view
+            n_img = self.model.batch_model.n_img
+            if n_img is None:
+                self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
+                return
+            self.set_navigation_range((0, n_img - 1))
+            self.widget.batch_widget.activate_surface_view()
+            self.plot_batch()
+        elif self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
+            n_img = self.model.batch_model.n_img
+            if n_img is None:
+                self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
+                return
+            self.set_navigation_range((0, n_img - 1))
+            self.widget.batch_widget.activate_stack_plot()
+
+            self.plot_batch()
+        else:
+            print("Changing to Fitting view")
+            n_img = self.model.batch_model.n_img
+            if n_img is None:
+                self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
+                return
+            self.set_navigation_range((0, n_img - 1))
+            self.widget.batch_widget.activate_stack_fitting_plot()
+            self.plot_batch()  
         
     def find_peaks(self):
         
-        regionBounds = self.widget.batch_widget.stack_plot_widget.img_view.linear_region_item.getRegion()
+        regionBounds = self.widget.batch_widget.stack_plot_fitting_widget.img_view.linear_region_item.getRegion()
         
         self.peak_fit_results, self.peak_fit_errs = self.model.batch_model.find_peaks(bounds = regionBounds)    
         print(self.peak_fit_results)
@@ -1236,7 +1283,7 @@ class BatchFitController(BatchController):
     
     def plot_peaks(self, peaks):        
 
-        self.widget.batch_widget.stack_plot_widget.img_view.add_scatter_data(y=peaks, 
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.add_scatter_data(y=peaks, 
                                                                              x=np.arange(0.5, len(peaks)+0.5))
 
         #self.widget.batch_widget.stack_plot_widget.img_view.add_scatter_data(x = [1, 2, 3], y=[5, 5, 5])        
