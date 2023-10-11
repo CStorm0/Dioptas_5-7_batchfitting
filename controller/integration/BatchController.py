@@ -553,29 +553,36 @@ class BatchController(object):
         """
         Change between 2D, 3D and file views
         """
-        if self.widget.batch_widget.mode_widget.view_f_btn.isChecked():
-            self.widget.batch_widget.activate_files_view()
-            n_img_all = self.model.batch_model.n_img_all
-            if n_img_all is not None:
-                self.set_navigation_raw((0, n_img_all - 1))
+        # if self.widget.batch_widget.mode_widget.view_f_btn.isChecked():
+        #     self.widget.batch_widget.activate_files_view()
+        #     n_img_all = self.model.batch_model.n_img_all
+        #     if n_img_all is not None:
+        #         self.set_navigation_raw((0, n_img_all - 1))
 
-        elif self.widget.batch_widget.mode_widget.view_3d_btn.isChecked():
-            n_img = self.model.batch_model.n_img
-            if n_img is None:
-                self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
-                return
-            self.set_navigation_range((0, n_img - 1))
-            self.widget.batch_widget.activate_surface_view()
-            self.plot_batch()
-        else:
-            n_img = self.model.batch_model.n_img
-            if n_img is None:
-                self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
-                return
-            self.set_navigation_range((0, n_img - 1))
-            self.widget.batch_widget.activate_stack_plot()
+        # elif self.widget.batch_widget.mode_widget.view_3d_btn.isChecked():
+        #     n_img = self.model.batch_model.n_img
+        #     if n_img is None:
+        #         self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
+        #         return
+        #     self.set_navigation_range((0, n_img - 1))
+        #     self.widget.batch_widget.activate_surface_view()
+        #     self.plot_batch()
+        # else:
+        #     n_img = self.model.batch_model.n_img
+        #     if n_img is None:
+        #         self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
+        #         return
+        #     self.set_navigation_range((0, n_img - 1))
+        #     self.widget.batch_widget.activate_stack_plot()
 
-            self.plot_batch()
+        #     self.plot_batch()
+            
+        n_img_all = self.model.batch_model.n_img_all
+        if n_img_all is not None:
+            self.set_navigation_raw((0, n_img_all - 1))
+            
+        self.plot_batch()
+        
 
     def filename_txt_changed(self):
         """
@@ -636,7 +643,7 @@ class BatchController(object):
             self.load_proc_data(filenames[0])
             self.load_raw_data(self.model.batch_model.files)
 #            self.widget.batch_widget.mode_widget.view_2d_btn.setChecked(True)
-#            self.change_view()
+            self.change_view()
             self.plot_batch()
             self.widget.batch_widget.stack_plot_widget.img_view.auto_range()
         else:
@@ -644,7 +651,7 @@ class BatchController(object):
             self.model.batch_model.reset_data()
             self.load_raw_data(filenames)
 #            self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
-#            self.change_view()
+            self.change_view()
             self.plot_batch()
             
 
@@ -1026,9 +1033,9 @@ class BatchController(object):
         """
         y = int(y)
         self.model.current_configuration.auto_integrate_pattern = False
-        self.model.batch_model.load_image(y, self.widget.batch_widget.mode_widget.view_f_btn.isChecked())
-        f_name, pos = self.model.batch_model.get_image_info(y,
-                                                            self.widget.batch_widget.mode_widget.view_f_btn.isChecked())
+        # OLD: self.model.batch_model.load_image(y, self.widget.batch_widget.mode_widget.view_f_btn.isChecked())
+        self.model.batch_model.load_image(y, False)
+        f_name, pos = self.model.batch_model.get_image_info(y, False)
         self.widget.batch_widget.setWindowTitle(f"Batch widget. {f_name} - {pos}")
         self.model.current_configuration.auto_integrate_pattern = True
         self.widget.batch_widget.position_widget.mouse_pos_widget.clicked_pos_widget.x_pos_lbl.setText(f'Img: {y:.0f}')
@@ -1348,43 +1355,6 @@ class BatchFitController(BatchController):
         self.widget.batch_widget.control_widget.find_peaks_btn.clicked.connect(self.find_peaks)
         
 #        self.widget.batch_widget.mode_widget.view_fitting_btn.clicked.connect(self.change_view)
-        
-    def change_view(self):
-        """
-        Change between 2D, 3D and file views, with added support for Fitting view
-        """
-        if self.widget.batch_widget.mode_widget.view_f_btn.isChecked(): # Files view
-            self.widget.batch_widget.activate_files_view()
-            n_img_all = self.model.batch_model.n_img_all
-            if n_img_all is not None:
-                self.set_navigation_raw((0, n_img_all - 1))
-
-        elif self.widget.batch_widget.mode_widget.view_3d_btn.isChecked(): # 3D view
-            n_img = self.model.batch_model.n_img
-            if n_img is None:
-                self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
-                return
-            self.set_navigation_range((0, n_img - 1))
-            self.widget.batch_widget.activate_surface_view()
-            self.plot_batch()
-        elif self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
-            n_img = self.model.batch_model.n_img
-            if n_img is None:
-                self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
-                return
-            self.set_navigation_range((0, n_img - 1))
-            self.widget.batch_widget.activate_stack_plot()
-
-            self.plot_batch()
-        else:
-            print("Changing to Fitting view")
-            n_img = self.model.batch_model.n_img
-            if n_img is None:
-                self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
-                return
-            self.set_navigation_range((0, n_img - 1))
-            self.widget.batch_widget.activate_stack_fitting_plot()
-            self.plot_batch()
         
     def find_peaks(self):
         
