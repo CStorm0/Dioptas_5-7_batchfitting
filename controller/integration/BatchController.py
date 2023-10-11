@@ -645,6 +645,8 @@ class BatchController(object):
             self.load_raw_data(filenames)
 #            self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
 #            self.change_view()
+            self.plot_batch()
+            
 
         self.load_single_image(1, 0)
         self.integrate()
@@ -735,6 +737,7 @@ class BatchController(object):
         self.widget.calibration_lbl.setText(
             self.model.calibration_model.calibration_name)
 
+
     def plot_batch(self, start=None, stop=None):
         """
         Plot batch of diffraction patters taking into account scale abd background subtraction
@@ -755,30 +758,63 @@ class BatchController(object):
         if start is None:
             start = int(str(self.widget.batch_widget.position_widget.step_series_widget.start_txt.text()))
 
-        if self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
-            self.widget.batch_widget.stack_plot_widget.img_view.plot_image(data[start:stop + 1, start_x:stop_x], True,
-                                                                           [start_x, stop_x])
-            self.update_axes_range()
-            self.update_linear_region()
+        self.widget.batch_widget.stack_plot_widget.img_view.plot_image(data[start:stop + 1, start_x:stop_x], 
+                                                                       True, [start_x, stop_x])
 
-        # CStorm
-        if self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
-            self.widget.batch_widget.stack_plot_fitting_widget.img_view.plot_image(data[start:stop + 1, start_x:stop_x], True,
-                                                                           [start_x, stop_x])
-            self.update_axes_range()
-            self.update_linear_region()
-
-        if self.widget.batch_widget.mode_widget.view_3d_btn.isChecked():
-            step = int(str(self.widget.batch_widget.position_widget.step_series_widget.step_txt.text()))
-            step_min = max(1, int(data[start:stop + 1].size / self.size_threshold))
-            if step < step_min:
-                step = step_min
-                self.widget.batch_widget.position_widget.step_series_widget.step_txt.setValue(step)
-            self.widget.batch_widget.surface_widget.surface_view.plot_surface(data[start:stop + 1:step, start_x:stop_x],
-                                                                              start, step)
-            self.update_3d_axis(data[start:stop + 1:step, start_x:stop_x])
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.plot_image(data[start:stop + 1, start_x:stop_x], 
+                                                                               True, [start_x, stop_x])
+        
+        self.update_axes_range()
+        self.update_linear_region()
 
         self.model.enabled_phases_in_cake.emit()
+
+
+    # OLD
+    # def plot_batch(self, start=None, stop=None):
+    #     """
+    #     Plot batch of diffraction patters taking into account scale abd background subtraction
+    #     """
+    #     data = self.model.batch_model.data
+    #     bkg = self.model.batch_model.bkg
+    #     if data is None:
+    #         return
+    #     if self.widget.batch_widget.options_widget.background_btn.isChecked() and bkg is not None:
+    #         data = data - bkg
+    #     if self.min_val.get('current', None) is not None:
+    #         data[data < self.min_val['current']] = self.min_val['current']
+    #     data = self.scale(data)
+
+    #     start_x, stop_x = self._get_x_range()
+    #     if stop is None:
+    #         stop = int(str(self.widget.batch_widget.position_widget.step_series_widget.stop_txt.text()))
+    #     if start is None:
+    #         start = int(str(self.widget.batch_widget.position_widget.step_series_widget.start_txt.text()))
+
+    #     if self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
+    #         self.widget.batch_widget.stack_plot_widget.img_view.plot_image(data[start:stop + 1, start_x:stop_x], True,
+    #                                                                        [start_x, stop_x])
+    #         self.update_axes_range()
+    #         self.update_linear_region()
+
+    #     # CStorm
+    #     if self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
+    #         self.widget.batch_widget.stack_plot_fitting_widget.img_view.plot_image(data[start:stop + 1, start_x:stop_x], True,
+    #                                                                        [start_x, stop_x])
+    #         self.update_axes_range()
+    #         self.update_linear_region()
+
+    #     if self.widget.batch_widget.mode_widget.view_3d_btn.isChecked():
+    #         step = int(str(self.widget.batch_widget.position_widget.step_series_widget.step_txt.text()))
+    #         step_min = max(1, int(data[start:stop + 1].size / self.size_threshold))
+    #         if step < step_min:
+    #             step = step_min
+    #             self.widget.batch_widget.position_widget.step_series_widget.step_txt.setValue(step)
+    #         self.widget.batch_widget.surface_widget.surface_view.plot_surface(data[start:stop + 1:step, start_x:stop_x],
+    #                                                                           start, step)
+    #         self.update_3d_axis(data[start:stop + 1:step, start_x:stop_x])
+
+    #     self.model.enabled_phases_in_cake.emit()
 
     def _get_x_range(self):
         """
@@ -1059,12 +1095,6 @@ class BatchController(object):
 
         stack_plot_widget = self.widget.batch_widget.stack_plot_widget
         
-        if self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
-            print("Using stack_plot_widget")
-        elif self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
-            print("Using stack_plot_fitting_widget")
-            stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget
-            
         img_view_rect = stack_plot_widget.img_view.img_view_rect()
         start_x, stop_x = stack_plot_widget.img_view.x_bin_range
         binning = self.model.batch_model.binning[start_x: stop_x]
@@ -1084,8 +1114,13 @@ class BatchController(object):
         else:
             ticks = None
 
-        stack_plot_widget.img_view.bottom_axis_cake.setRange(min_tth, max_tth)
-        stack_plot_widget.img_view.bottom_axis_cake.setTicks(ticks)    
+        # update range for both stack_plot_widget and stack_plot_fitting_widget
+        for stack_plot_widget in [self.widget.batch_widget.stack_plot_widget, 
+                                  self.widget.batch_widget.stack_plot_fitting_widget]:
+            stack_plot_widget.img_view.bottom_axis_cake.setRange(min_tth, max_tth)
+            stack_plot_widget.img_view.bottom_axis_cake.setTicks(ticks)
+    
+        
 
     def get_ticks(self, min_val, max_val, ticks_unit, base_unit, n_ticks=8):
         """
@@ -1164,11 +1199,11 @@ class BatchController(object):
 
         stack_plot_widget = self.widget.batch_widget.stack_plot_widget
         
-        if self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
-            print("Using stack_plot_widget")
-        elif self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
-            print("Using stack_plot_fitting_widget")
-            stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget        
+        # if self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
+        #     print("Using stack_plot_widget")
+        # elif self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
+        #     print("Using stack_plot_fitting_widget")
+        #     stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget
 
         y = self.widget.batch_widget.position_widget.step_series_widget.slider.value()
         start, stop, step = self.widget.batch_widget.position_widget.step_series_widget.get_image_range()
@@ -1189,6 +1224,10 @@ class BatchController(object):
         max_y = v_scale * (bottom + height) + start
 
         stack_plot_widget.img_view.left_axis_cake.setRange(min_y, max_y)
+        
+        for stack_plot_widget in [self.widget.batch_widget.stack_plot_widget, 
+                                  self.widget.batch_widget.stack_plot_fitting_widget]:
+            stack_plot_widget.img_view.left_axis_cake.setRange(min_y, max_y)
 
     def integrate(self):
         """
@@ -1225,7 +1264,7 @@ class BatchController(object):
             return ~progress_dialog.wasCanceled()
 
         self.model.batch_model.integrate_raw_data(num_points, start, stop + 1, step,
-                                                  use_all=False, #Old: self.widget.batch_widget.mode_widget.view_f_btn.isChecked(),
+                                                  use_all=True, #Old: self.widget.batch_widget.mode_widget.view_f_btn.isChecked(),
                                                   callback_fn=callback_fn,
                                                   use_mask=self.model.use_mask)
 

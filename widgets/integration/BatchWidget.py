@@ -48,6 +48,10 @@ class BatchWidget(QtWidgets.QWidget):
         self.stack_plot_widget = BatchStackWidget() #CStorm
         self.stack_plot_fitting_widget = BatchFitStackWidget()
         
+        self.stack_plot_fitting_widget.show()
+        self.stack_plot_widget.show()
+        self.file_view_widget.show()
+        
         self.tab_view_widget = QtWidgets.QTabWidget()
         self.tab_view_widget.addTab(self.file_view_widget, "Files")
         self.tab_view_widget.addTab(self.stack_plot_widget, "2D")
@@ -130,11 +134,6 @@ class BatchFitWidget(BatchWidget):
     def __init__(self, parent=None):
         super(BatchFitWidget, self).__init__(parent)
         print("Using BatchFitWidget")
-        
-        #self.mode_widget = BatchModeFittingWidget()
-        
-        #self._bottom_layout = 
-        
         
         self._central_layout.addWidget(self.stack_plot_fitting_widget)
         self.style_widgets()
