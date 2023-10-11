@@ -245,8 +245,9 @@ class BatchModel(QtCore.QObject):
             self.used_mask_shape = mask.shape
         else:
             mask = None
-
+        print(self.pos_map)
         for index in range(start, stop, step):
+            print(index)
             if use_all:
                 file_index, pos = self.pos_map_all[index]
             else:

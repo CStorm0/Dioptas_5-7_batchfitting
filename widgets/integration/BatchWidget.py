@@ -48,7 +48,7 @@ class BatchWidget(QtWidgets.QWidget):
         self.stack_plot_widget = BatchStackWidget() #CStorm
         self.stack_plot_fitting_widget = BatchFitStackWidget()
         
-        self.tab_view_widget = TabWidgetMinSize()
+        self.tab_view_widget = QtWidgets.QTabWidget()
         self.tab_view_widget.addTab(self.file_view_widget, "Files")
         self.tab_view_widget.addTab(self.stack_plot_widget, "2D")
         self.tab_view_widget.addTab(self.stack_plot_fitting_widget, "Fitting")

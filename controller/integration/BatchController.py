@@ -635,16 +635,16 @@ class BatchController(object):
             self.model.batch_model.reset_data()
             self.load_proc_data(filenames[0])
             self.load_raw_data(self.model.batch_model.files)
-            self.widget.batch_widget.mode_widget.view_2d_btn.setChecked(True)
-            self.change_view()
+#            self.widget.batch_widget.mode_widget.view_2d_btn.setChecked(True)
+#            self.change_view()
             self.plot_batch()
             self.widget.batch_widget.stack_plot_widget.img_view.auto_range()
         else:
             self.widget.img_directory_txt.setText(os.path.dirname(filenames[0]))
             self.model.batch_model.reset_data()
             self.load_raw_data(filenames)
-            self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
-            self.change_view()
+#            self.widget.batch_widget.mode_widget.view_f_btn.setChecked(True)
+#            self.change_view()
 
         self.load_single_image(1, 0)
         self.integrate()
@@ -1206,10 +1206,12 @@ class BatchController(object):
         else:
             num_points = None
 
-        if self.widget.batch_widget.mode_widget.view_f_btn.isChecked():
-            start, stop, step = self.widget.batch_widget.position_widget.step_raw_widget.get_image_range()
-        else:
-            start, stop, step = self.widget.batch_widget.position_widget.step_series_widget.get_image_range()
+        start, stop, step = self.widget.batch_widget.position_widget.step_raw_widget.get_image_range()
+        #start, stop, step = self.widget.batch_widget.position_widget.step_series_widget.get_image_range()
+#        if self.widget.batch_widget.mode_widget.view_f_btn.isChecked():
+#            start, stop, step = self.widget.batch_widget.position_widget.step_raw_widget.get_image_range()
+#        else:
+#            start, stop, step = self.widget.batch_widget.position_widget.step_series_widget.get_image_range()
 
         self.model.img_model.blockSignals(True)
         n_int = (stop - start) / step
@@ -1223,7 +1225,7 @@ class BatchController(object):
             return ~progress_dialog.wasCanceled()
 
         self.model.batch_model.integrate_raw_data(num_points, start, stop + 1, step,
-                                                  self.widget.batch_widget.mode_widget.view_f_btn.isChecked(),
+                                                  use_all=False, #Old: self.widget.batch_widget.mode_widget.view_f_btn.isChecked(),
                                                   callback_fn=callback_fn,
                                                   use_mask=self.model.use_mask)
 
@@ -1237,9 +1239,9 @@ class BatchController(object):
         self.widget.batch_widget.position_widget.step_raw_widget.pos_label.setText(f"Frame({n_img}/{n_img_all}):")
         self.widget.batch_widget.position_widget.step_series_widget.stop_txt.setValue(n_img - 1)
         self.widget.batch_widget.position_widget.step_series_widget.start_txt.setValue(0)
-        self.widget.batch_widget.mode_widget.view_2d_btn.setChecked(True)
-        self.reset_view()
-        self.change_view()
+        #self.widget.batch_widget.mode_widget.view_2d_btn.setChecked(True)
+        #self.reset_view()
+        #self.change_view()
         self.widget.batch_widget.stack_plot_widget.img_view.auto_range()
 
     def create_progress_dialog(self, text_str, abort_str, end_value):
@@ -1343,7 +1345,7 @@ class BatchFitController(BatchController):
                 return
             self.set_navigation_range((0, n_img - 1))
             self.widget.batch_widget.activate_stack_fitting_plot()
-            self.plot_batch()  
+            self.plot_batch()
         
     def find_peaks(self):
         
