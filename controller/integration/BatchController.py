@@ -349,6 +349,10 @@ class BatchController(object):
         self.model.current_configuration.integration_unit = '2th_deg'
         self.widget.batch_widget.stack_plot_widget.img_view.bottom_axis_cake.setLabel(u'2θ', '°')
         self.widget.batch_widget.stack_plot_widget.img_view.img_view_box.invertX(False)
+        
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.bottom_axis_cake.setLabel(u'2θ', '°')
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.img_view_box.invertX(False)
+        
         self.update_x_axis()
         if not self.model.calibration_model.is_calibrated:
             x = self.widget.batch_widget.stack_plot_widget.img_view.vertical_line.getXPos()
@@ -366,8 +370,10 @@ class BatchController(object):
         self.model.current_configuration.integration_unit = "q_A^-1"
         self.widget.batch_widget.stack_plot_widget.img_view.img_view_box.invertX(False)
         self.widget.batch_widget.stack_plot_widget.img_view.bottom_axis_cake.setLabel('Q', 'A<sup>-1</sup>')
+        
         self.widget.batch_widget.stack_plot_fitting_widget.img_view.img_view_box.invertX(False)
         self.widget.batch_widget.stack_plot_fitting_widget.img_view.bottom_axis_cake.setLabel('Q', 'A<sup>-1</sup>')
+        
         self.update_x_axis()
         if not self.model.calibration_model.is_calibrated:
             x = self.widget.batch_widget.stack_plot_widget.img_view.vertical_line.getXPos()
@@ -663,6 +669,7 @@ class BatchController(object):
 
         self.load_single_image(1, 0)
         self.integrate()
+        self.widget.batch_widget.tab_view_widget.setCurrentIndex(0)
 
     def load_previous_folder(self):
         filenames = self.model.batch_model.get_previous_folder_filenames()

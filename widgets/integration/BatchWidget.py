@@ -109,13 +109,13 @@ class BatchWidget(QtWidgets.QWidget):
             layout.setContentsMargins(0, 0, 0, 0)
             layout.setSpacing(0)
 
-        self.setStyleSheet(
-            """
-            #black_container {
-                background: black;
-            }
-            """
-        )
+        # self.setStyleSheet(
+        #     """
+        #     #black_container {
+        #         background: black;
+        #     }
+        #     """
+        # )
 
     def sizeHint(self):
         return QtCore.QSize(800, 600)
