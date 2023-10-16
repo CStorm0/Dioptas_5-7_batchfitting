@@ -503,7 +503,6 @@ class BatchModeFittingWidget_v1(BatchModeWidget):
             
 """        )
 """
-
 class BatchStackWidget(QtWidgets.QWidget):
     def __init__(self):
         super(BatchStackWidget, self).__init__()
@@ -516,7 +515,6 @@ class BatchStackWidget(QtWidgets.QWidget):
         self._layout.addWidget(self.img_pg_layout)
         self.setLayout(self._layout)
         self._layout.setContentsMargins(0, 0, 0, 0)
-
 # CStorm
 class BatchFitStackWidget(BatchStackWidget):
     def __init__(self):

@@ -366,6 +366,8 @@ class BatchController(object):
         self.model.current_configuration.integration_unit = "q_A^-1"
         self.widget.batch_widget.stack_plot_widget.img_view.img_view_box.invertX(False)
         self.widget.batch_widget.stack_plot_widget.img_view.bottom_axis_cake.setLabel('Q', 'A<sup>-1</sup>')
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.img_view_box.invertX(False)
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.bottom_axis_cake.setLabel('Q', 'A<sup>-1</sup>')
         self.update_x_axis()
         if not self.model.calibration_model.is_calibrated:
             x = self.widget.batch_widget.stack_plot_widget.img_view.vertical_line.getXPos()
@@ -382,6 +384,7 @@ class BatchController(object):
         self.widget.integration_pattern_widget.d_btn.setChecked(True)
         self.model.current_configuration.integration_unit = 'd_A'
         self.widget.batch_widget.stack_plot_widget.img_view.bottom_axis_cake.setLabel('d', 'A')
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.bottom_axis_cake.setLabel('d', 'A')
         self.update_x_axis()
         if not self.model.calibration_model.is_calibrated:
             x = self.widget.batch_widget.stack_plot_widget.img_view.vertical_line.getXPos()
@@ -395,9 +398,12 @@ class BatchController(object):
         if self.widget.batch_widget.control_widget.phases_btn.isChecked():
             self.widget.batch_widget.stack_plot_widget.img_view.show_all_visible_cake_phases(
                 self.widget.phase_widget.phase_show_cbs)
+            self.widget.batch_widget.stack_plot_fitting_widget.img_view.show_all_visible_cake_phases(
+                self.widget.phase_widget.phase_show_cbs)
             self.widget.batch_widget.control_widget.phases_btn.setText('Hide Phases')
         else:
             self.widget.batch_widget.stack_plot_widget.img_view.hide_all_cake_phases()
+            self.widget.batch_widget.stack_plot_fitting_widget.img_view.hide_all_cake_phases()
             self.widget.batch_widget.control_widget.phases_btn.setText('Show Phases')
 
     def subtract_background(self):
