@@ -557,6 +557,7 @@ class BatchControlWidget(QtWidgets.QWidget):
         self._layout.addWidget(self.normalize_btn)
 
         self._layout.addSpacerItem(HorizontalSpacerItem())
+        
 
         self.setLayout(self._layout)
 
