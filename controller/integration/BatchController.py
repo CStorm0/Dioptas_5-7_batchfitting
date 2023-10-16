@@ -1379,6 +1379,9 @@ class BatchFitController(BatchController):
         #print(self.peak_fit_errs)
         
         self.plot_peaks(self.model.batch_model.peak_fit_results[:, 1])
+        
+        self.update_batch_fit_table()
+        
     
     def plot_peaks(self, peaks):        
 
@@ -1387,7 +1390,12 @@ class BatchFitController(BatchController):
 
         #self.widget.batch_widget.stack_plot_widget.img_view.add_scatter_data(x = [1, 2, 3], y=[5, 5, 5])        
         
+    def update_batch_fit_table(self):        
+        print(np.array(self.model.batch_model.peak_search_result_df_filtered_sparse))
+        self.widget.batch_widget.fitting_results_table_widget.table.setData(np.array(self.model.batch_model.peak_search_result_df_filtered_sparse))
+        self.widget.batch_widget.fitting_results_table_widget.table.setHorizontalHeaderLabels(self.model.batch_model.peak_search_result_df_filtered_sparse.columns)
         
         
+    
         
         

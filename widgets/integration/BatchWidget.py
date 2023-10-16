@@ -1,11 +1,11 @@
 import os
 
 from qtpy import QtWidgets, QtCore, QtGui
-from pyqtgraph import GraphicsLayoutWidget, ColorButton
+from pyqtgraph import GraphicsLayoutWidget, ColorButton, TableWidget
 
 from ..plot_widgets.ImgWidget import IntegrationBatchWidget
 from .CustomWidgets import MouseCurrentAndClickedWidget
-from ..CustomWidgets import FlatButton, CheckableFlatButton, HorizontalSpacerItem, VerticalSpacerItem, LabelAlignRight, LabelExpandable
+from ..CustomWidgets import FlatButton, CheckableFlatButton, HorizontalSpacerItem, VerticalSpacerItem, LabelAlignRight, LabelExpandable, ListTableWidget
 from .control import TabWidgetMinSize
 
 from . import CLICKED_COLOR
@@ -48,6 +48,10 @@ class BatchWidget(QtWidgets.QWidget):
         self.stack_plot_widget = BatchStackWidget() #CStorm
         self.stack_plot_fitting_widget = BatchFitStackWidget()
         
+        #self.fitting_results_table_widget = ListTableWidget(columns=3)
+        #self.fitting_results_table_widget = BatchFittingTableWidget(columns=3)
+        self.fitting_results_table_widget = BatchFittingTableWidget()
+                
         self.stack_plot_fitting_widget.show()
         self.stack_plot_widget.show()
         self.file_view_widget.show()
@@ -56,7 +60,7 @@ class BatchWidget(QtWidgets.QWidget):
         self.tab_view_widget.addTab(self.file_view_widget, "Files")
         self.tab_view_widget.addTab(self.stack_plot_widget, "2D")
         self.tab_view_widget.addTab(self.stack_plot_fitting_widget, "Fitting")
-        
+        self.tab_view_widget.addTab(self.fitting_results_table_widget, 'Fitting Results')
         #if open_gl:
         #    self.surface_widget = BatchSurfaceWidget()
         self.options_widget = BatchOptionsWidget()
@@ -206,6 +210,33 @@ class BatchFitWidget(BatchWidget):
         self.control_widget.find_peaks_btn.show()
         self.control_widget.clear_peaks_btn.show()
 
+"""
+class BatchFittingTableWidget(ListTableWidget):
+    def __init__(self, columns):
+        super(BatchFittingTableWidget, self).__init__()        
+        self.setHorizontalHeaderLabels(["Index", "2θ", "2θ err"])
+        self.horizontalHeader().setVisible(True)
+        self.horizontalHeader().setStretchLastSection(False)
+"""     
+       
+class BatchFittingTableWidget(QtWidgets.QWidget):
+    def __init__(self):
+        super(BatchFittingTableWidget, self).__init__()
+        self._layout = QtWidgets.QVBoxLayout()
+        self._layout.setContentsMargins(5, 2, 5, 2)
+        self._layout.setSpacing(4)
+
+        self.table = TableWidget()
+
+        #self.header_labels = ["Index", "2θ", "2θ err"]
+        self.headers = self.table.horizontalHeader()
+        self.table.setHorizontalHeaderLabels(["Index", "2θ", "2θ err"])
+        #self.headers.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+
+        self._layout.addWidget(self.table)
+        self.setLayout(self._layout)
+        self.resize(800, 500)
+        
 
 # Tab version
 class BatchTabWidget(BatchWidget):
@@ -221,7 +252,6 @@ class BatchTabWidget(BatchWidget):
         self.file_view_widget.hide()
         self.stack_plot_widget.hide()
         self.stack_plot_fitting_widget.hide()
-    
     
 
 class BatchFileViewWidget(QtWidgets.QWidget):
@@ -503,6 +533,7 @@ class BatchModeFittingWidget_v1(BatchModeWidget):
             
 """        )
 """
+
 class BatchStackWidget(QtWidgets.QWidget):
     def __init__(self):
         super(BatchStackWidget, self).__init__()
@@ -516,7 +547,36 @@ class BatchStackWidget(QtWidgets.QWidget):
         self.setLayout(self._layout)
         self._layout.setContentsMargins(0, 0, 0, 0)
 # CStorm
-class BatchFitStackWidget(BatchStackWidget):
+class BatchFitStackWidget(QtWidgets.QWidget):
+    def __init__(self):
+        super(BatchFitStackWidget, self).__init__()
+
+        self._layout = QtWidgets.QHBoxLayout()
+        
+        self.img_pg_layout = GraphicsLayoutWidget()
+        self.img_view = IntegrationBatchWidget(self.img_pg_layout, orientation='horizontal')
+
+        self._layout.addWidget(self.img_pg_layout)
+        self.setLayout(self._layout)
+        self._layout.setContentsMargins(0, 0, 0, 0)
+        
+        print("Using BatchFitStackWidget")
+        # Activate linear_region_item() which already exists. 
+        # The existing implementation exists to define limits on the background
+        # subtraction in the normal 1D integrated view.
+        self.img_view.show_linear_region()
+        
+        self.img_view.set_linear_region(5, 10)
+        self.img_view.deactivate_horizontal_line()
+        self.img_view.deactivate_vertical_line()
+        self.img_view.deactivate_mouse_click_item()
+        
+        # set region item limits in 2th space and turn on Moveable
+        self.img_view.linear_region_item.setRegion((500, 1000))
+        self.img_view.linear_region_item.setMovable(True)
+
+# backup
+class BatchFitStackWidget_Backup(BatchStackWidget):
     def __init__(self):
         super(BatchFitStackWidget, self).__init__()
         
@@ -531,7 +591,7 @@ class BatchFitStackWidget(BatchStackWidget):
         self.img_view.deactivate_vertical_line()
         self.img_view.deactivate_mouse_click_item()
         
-        # set region item limits in 2th space and turn on Movaable
+        # set region item limits in 2th space and turn on Moveable
         self.img_view.linear_region_item.setRegion((500, 1000))
         self.img_view.linear_region_item.setMovable(True)
 
