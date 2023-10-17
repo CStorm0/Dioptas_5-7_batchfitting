@@ -1371,35 +1371,49 @@ class BatchFitController(BatchController):
 #        self.widget.batch_widget.mode_widget.view_fitting_btn.clicked.connect(self.change_view)
         
     def find_peaks(self):        
+        """
+        Search for peaks in stack_plot_fitting_widget's img_view, using bounds from the 
+        linear_region_item
+        """
         regionBounds = self.widget.batch_widget.stack_plot_fitting_widget.img_view.linear_region_item.getRegion()
         self.model.batch_model.find_peaks(bounds = regionBounds)
         #print(self.model.batch_model.peak_fit_results)
         
+        fit_results = np.array(self.model.batch_model.peak_search_result_df_filtered)
         fit_results_sparse = np.array(self.model.batch_model.peak_search_result_df_filtered_sparse)
         
-        self.plot_peaks(self.model.batch_model.peak_fit_results[:, 1])
+        #self.plot_peaks(self.model.batch_model.peak_fit_results[:, 1])
+        self.plot_peaks(fit_results[:, 1])
         self.update_batch_fit_table()
     
-    def plot_peaks(self, peaks):        
+    def plot_peaks(self, peaks):     
+        """
+        Add scatter points to img_view from fitted peaks
+        """
         self.widget.batch_widget.stack_plot_fitting_widget.img_view.add_scatter_data(y=peaks, 
                                                                              x=np.arange(0.5, len(peaks)+0.5))
         
-    def update_batch_fit_table(self):        
+    def update_batch_fit_table(self):
+        """
+        Update Fitting Results table from fitted peaks
+        """
         print(np.array(self.model.batch_model.peak_search_result_df_filtered_sparse))
         self.widget.batch_widget.fitting_results_table_widget.table.setData(np.array(self.model.batch_model.peak_search_result_df_filtered_sparse))        
-        columns = ['File','2θ', '2θ error', 'Width (2σ)', 'Amplitude']    
-        #self.widget.batch_widget.fitting_results_table_widget.table.setHorizontalHeaderLabels(self.model.batch_model.peak_search_result_df_filtered_sparse.columns)
+        # temporarily hardcode column names
+        columns = ['File', '2θ', '2θ error', 'Width (2σ)', 'Amplitude']
         self.widget.batch_widget.fitting_results_table_widget.table.setHorizontalHeaderLabels(columns)
         self.widget.batch_widget.fitting_results_table_widget.table.setFormat("%.3f", column=1)
         self.widget.batch_widget.fitting_results_table_widget.table.setFormat("%.3f", column=2)
         self.widget.batch_widget.fitting_results_table_widget.table.setFormat("%.3f", column=3)
         self.widget.batch_widget.fitting_results_table_widget.table.setFormat("%.0f", column=4)
-        # set column sizes
+        # set column width
         for column_index in range(len(columns)):        
-            self.widget.batch_widget.fitting_results_table_widget.table.setColumnWidth(column_index, 100)
-        
+            self.widget.batch_widget.fitting_results_table_widget.table.setColumnWidth(column_index, 100)        
     
     def clear_peaks(self):
+        """
+        Clear Fitting Results table
+        """
         self.model.batch_model.peak_fit_results = []
         self.model.batch_model.peak_fit_errs = []
         del(self.model.batch_model.peak_search_result_df)
