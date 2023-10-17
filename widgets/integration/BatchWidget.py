@@ -51,10 +51,11 @@ class BatchWidget(QtWidgets.QWidget):
         #self.fitting_results_table_widget = ListTableWidget(columns=3)
         #self.fitting_results_table_widget = BatchFittingTableWidget(columns=3)
         self.fitting_results_table_widget = BatchFittingTableWidget()
-                
+        
+        self.file_view_widget.show()        
         self.stack_plot_fitting_widget.show()
         self.stack_plot_widget.show()
-        self.file_view_widget.show()
+        
         
         self.tab_view_widget = QtWidgets.QTabWidget()
         self.tab_view_widget.addTab(self.file_view_widget, "Files")
@@ -227,11 +228,7 @@ class BatchFittingTableWidget(QtWidgets.QWidget):
         self._layout.setSpacing(4)
 
         self.table = TableWidget()
-
-        #self.header_labels = ["Index", "2θ", "2θ err"]
-        self.headers = self.table.horizontalHeader()
-        self.table.setHorizontalHeaderLabels(["Index", "2θ", "2θ err"])
-        #self.headers.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.table.setEditable(False)
 
         self._layout.addWidget(self.table)
         self.setLayout(self._layout)
@@ -565,6 +562,7 @@ class BatchFitStackWidget(QtWidgets.QWidget):
         # The existing implementation exists to define limits on the background
         # subtraction in the normal 1D integrated view.
         self.img_view.show_linear_region()
+        self.img_view.linear_region_item.setMovable(True)
         
         self.img_view.set_linear_region(5, 10)
         self.img_view.deactivate_horizontal_line()
@@ -572,8 +570,9 @@ class BatchFitStackWidget(QtWidgets.QWidget):
         self.img_view.deactivate_mouse_click_item()
         
         # set region item limits in 2th space and turn on Moveable
-        self.img_view.linear_region_item.setRegion((500, 1000))
-        self.img_view.linear_region_item.setMovable(True)
+        
+        #self.img_view.linear_region_item.setRegion((500, 1000))
+        #self.img_view.linear_region_item.setMovable(True)
 
 # backup
 class BatchFitStackWidget_Backup(BatchStackWidget):

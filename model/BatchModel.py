@@ -480,7 +480,7 @@ class BatchFitModel(BatchModel):
         self.peak_search_result_df_filtered = self.peak_search_result_df[self.combined_mask]
         # filter sparse DataFrame
         self.peak_search_result_df_filtered_sparse = self.peak_search_result_df.join(self.peak_search_result_df_filtered, 
-                                                                                     how='left', lsuffix='_raw')[['file_name_raw', 'tth', 'tth_err', 'width', 'a', 'a_err']]
+                                                                                     how='left', lsuffix='_raw')[['file_name_raw', 'tth', 'tth_err', 'width', 'a']]
         
         return self.peak_fit_results, self.peak_fit_errs
         
