@@ -223,16 +223,80 @@ class BatchFittingTableWidget(ListTableWidget):
 class BatchFittingTableWidget(QtWidgets.QWidget):
     def __init__(self):
         super(BatchFittingTableWidget, self).__init__()
-        self._layout = QtWidgets.QVBoxLayout()
+        self._layout = QtWidgets.QHBoxLayout()
         self._layout.setContentsMargins(5, 2, 5, 2)
         self._layout.setSpacing(4)
 
         self.table = TableWidget()
         self.table.setEditable(False)
+        
+        self.fitting_results_control_widget = BatchFittingTableControlWidget()
+        #self.fitting_results_control_widget.resize(200, self.fitting_results_control_widget.height())
+        self.fitting_results_control_widget.setFixedWidth(200)
+        self.fitting_results_control_widget.setBaseSize()
 
-        self._layout.addWidget(self.table)
+        self.horizontal_splitter = QtWidgets.QSplitter()
+        self.horizontal_splitter.setOrientation(QtCore.Qt.Horizontal)
+        self.horizontal_splitter.addWidget(self.table)
+        self.horizontal_splitter.addWidget(self.fitting_results_control_widget)        
+        
+        
+        #self._layout.addWidget(self.table)
+        self._layout.addWidget(self.horizontal_splitter)
+        
         self.setLayout(self._layout)
         self.resize(800, 500)
+        
+class BatchFittingTableControlWidget(QtWidgets.QWidget):
+    def __init__(self):
+        super(BatchFittingTableControlWidget, self).__init__()
+                
+        self._layout = QtWidgets.QVBoxLayout()
+        
+        self.sparse_cb = QtWidgets.QCheckBox('Sparse Results')
+        #self.columns_lbl = QtWidgets.QLabel('Columns:')
+        
+        self.tth_cb		= QtWidgets.QCheckBox()
+        self.tth_err_cb	= QtWidgets.QCheckBox()
+        self.width_cb	= QtWidgets.QCheckBox()
+        self.sigma_cb	= QtWidgets.QCheckBox()
+        self.fwhm_cb	= QtWidgets.QCheckBox()
+        self.amp_cb		= QtWidgets.QCheckBox()
+        
+        self.fitting_table_control_cbs = [self.tth_cb, self.tth_err_cb, self.width_cb,
+                                           self.sigma_cb, self.fwhm_cb, self.amp_cb]
+        cb_labels = ['2θ', '2θ error', 'Width (2σ)', 'σ', 'FWHM', 'Amplitude']
+        
+        for cb, label in zip(self.fitting_table_control_cbs, cb_labels):
+            cb.setText(label)        
+        self.create_layout()
+        self.set_default_controls()
+        
+    def create_layout(self):
+        self._layout.addWidget(self.sparse_cb)
+        self._layout.addWidget(QtWidgets.QLabel('Columns:'))
+        for cb in self.fitting_table_control_cbs:            
+            self._layout.addWidget(cb)
+        self._layout.addItem(VerticalSpacerItem())
+        self.setLayout(self._layout)
+        
+        
+    def set_default_controls(self):
+        self.sparse_cb.setChecked(True)
+        default_cb_settings = {'2θ':True, 
+                               '2θ error':True, 
+                               'Width (2σ)':True, 
+                               'σ':False, 
+                               'FWHM':False, 
+                               'Amplitude':True}        
+        for cb, default_check_state in zip(self.fitting_table_control_cbs, default_cb_settings.values()):
+            cb.setChecked(default_check_state)
+    
+    def get_fitting_table_control_cb_state(self):
+        
+        
+        return 
+        
         
 
 # Tab version

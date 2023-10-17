@@ -126,6 +126,8 @@ class BatchController(object):
 
         self.widget.batch_widget.stack_plot_widget.img_view.img_view_box.sigRangeChanged.connect(self.update_axes_range)
         self.model.configuration_selected.connect(self.update_gui)
+        
+        # fitting table controls        
 
     def create_mouse_behavior(self):
         """
