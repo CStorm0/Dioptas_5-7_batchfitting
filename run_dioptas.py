@@ -9,6 +9,10 @@ directory: /Users/cstorm/anaconda3/envs/dioptas_5-7_dev/lib/python3.11/site-pack
 
 data_dir: /Users/cstorm/Library/CloudStorage/OneDrive-UniversityofEdinburgh/Sharepoint/Python/BatchfittingRecreation/XRDPatterns/
 
+
+# run commands
+runfile('/Users/cstorm/anaconda3/envs/dioptas_5-7_dev/lib/python3.11/site-packages/dioptas/run_dioptas.py', wdir='/Users/cstorm/anaconda3/envs/dioptas_5-7_dev/lib/python3.11/site-packages/dioptas')
+
 """
 
 

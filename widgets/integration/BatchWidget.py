@@ -233,7 +233,7 @@ class BatchFittingTableWidget(QtWidgets.QWidget):
         self.fitting_results_control_widget = BatchFittingTableControlWidget()
         #self.fitting_results_control_widget.resize(200, self.fitting_results_control_widget.height())
         self.fitting_results_control_widget.setFixedWidth(200)
-        self.fitting_results_control_widget.setBaseSize()
+        #self.fitting_results_control_widget.setBaseSize()
 
         self.horizontal_splitter = QtWidgets.QSplitter()
         self.horizontal_splitter.setOrientation(QtCore.Qt.Horizontal)
