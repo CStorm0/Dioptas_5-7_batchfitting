@@ -60,10 +60,12 @@ class BatchWidget(QtWidgets.QWidget):
         self.tab_view_widget = QtWidgets.QTabWidget()
         self.tab_view_widget.addTab(self.file_view_widget, "Files")
         self.tab_view_widget.addTab(self.stack_plot_widget, "2D")
+        if open_gl:
+            self.surface_widget = BatchSurfaceWidget()
+            self.tab_view_widget.addTab(self.surface_widget, "3D")
         self.tab_view_widget.addTab(self.stack_plot_fitting_widget, "Fitting")
         self.tab_view_widget.addTab(self.fitting_results_table_widget, 'Fitting Results')
-        #if open_gl:
-        #    self.surface_widget = BatchSurfaceWidget()
+
         self.options_widget = BatchOptionsWidget()
 
         # bottom
@@ -89,8 +91,10 @@ class BatchWidget(QtWidgets.QWidget):
         #self._central_layout.addWidget(self.stack_plot_widget)
         #self._central_layout.addWidget(self.stack_plot_fitting_widget) # CStorm
         self._central_layout.addWidget(self.tab_view_widget) # 
-        #if open_gl:
-        #    self._central_layout.addWidget(self.surface_widget)
+        """
+        if open_gl:
+            self._central_layout.addWidget(self.surface_widget)
+        """
         self._central_layout.addWidget(self.options_widget)
 
         self._frame_layout.addLayout(self._top_layout)
@@ -231,18 +235,16 @@ class BatchFittingTableWidget(QtWidgets.QWidget):
         self.table.setEditable(False)
         
         self.fitting_results_control_widget = BatchFittingTableControlWidget()
-        #self.fitting_results_control_widget.resize(200, self.fitting_results_control_widget.height())
         self.fitting_results_control_widget.setFixedWidth(200)
-        #self.fitting_results_control_widget.setBaseSize()
 
         self.horizontal_splitter = QtWidgets.QSplitter()
         self.horizontal_splitter.setOrientation(QtCore.Qt.Horizontal)
         self.horizontal_splitter.addWidget(self.table)
-        self.horizontal_splitter.addWidget(self.fitting_results_control_widget)        
+        self.horizontal_splitter.addWidget(self.fitting_results_control_widget)
         
         
-        #self._layout.addWidget(self.table)
-        self._layout.addWidget(self.horizontal_splitter)
+        self._layout.addWidget(self.table)
+        #self._layout.addWidget(self.horizontal_splitter) # turn off for now
         
         self.setLayout(self._layout)
         self.resize(800, 500)
@@ -627,8 +629,10 @@ class BatchFitStackWidget(QtWidgets.QWidget):
         # subtraction in the normal 1D integrated view.
         self.img_view.show_linear_region()
         self.img_view.linear_region_item.setMovable(True)
+
+        # let's try setting the linear region bounds when data is loaded instead
+        #self.img_view.set_linear_region(5, 10)
         
-        self.img_view.set_linear_region(5, 10)
         self.img_view.deactivate_horizontal_line()
         self.img_view.deactivate_vertical_line()
         self.img_view.deactivate_mouse_click_item()

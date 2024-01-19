@@ -108,7 +108,7 @@ class BatchController(object):
 
         # Surface widget signals
         if open_gl:
-            self.widget.batch_widget.mode_widget.view_3d_btn.clicked.connect(self.change_view)
+            #self.widget.batch_widget.mode_widget.view_3d_btn.clicked.connect(self.change_view)
             surface_navigation_widget = self.widget.batch_widget.surface_widget.control_widget
             surface_navigation_widget.view3d_f_btn.clicked.connect(self.set_3d_view_f)
             surface_navigation_widget.view3d_s_btn.clicked.connect(self.set_3d_view_s)
@@ -127,6 +127,8 @@ class BatchController(object):
         self.widget.batch_widget.stack_plot_widget.img_view.img_view_box.sigRangeChanged.connect(self.update_axes_range)
         self.model.configuration_selected.connect(self.update_gui)
         
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.img_view_box.sigRangeChanged.connect(self.update_axes_range)
+        
         # fitting table controls        
 
     def create_mouse_behavior(self):
@@ -135,6 +137,8 @@ class BatchController(object):
         """
         self.widget.batch_widget.stack_plot_widget.img_view.mouse_moved.connect(self.show_img_mouse_position)
         self.widget.batch_widget.stack_plot_widget.img_view.mouse_left_clicked.connect(self.img_mouse_click)
+
+        # TODO: consider adding stack_plot_fitting_widget interactivity here
 
         self.model.clicked_tth_changed.connect(self.update_vertical_line_pos)
 
@@ -762,7 +766,7 @@ class BatchController(object):
 
     def plot_batch(self, start=None, stop=None):
         """
-        Plot batch of diffraction patters taking into account scale abd background subtraction
+        Plot batch of diffraction patters taking into account scale and background subtraction
         """
         data = self.model.batch_model.data
         bkg = self.model.batch_model.bkg
@@ -785,6 +789,18 @@ class BatchController(object):
 
         self.widget.batch_widget.stack_plot_fitting_widget.img_view.plot_image(data[start:stop + 1, start_x:stop_x], 
                                                                                True, [start_x, stop_x])
+        
+        
+        # 3D view
+        step = int(str(self.widget.batch_widget.position_widget.step_series_widget.step_txt.text()))
+        step_min = max(1, int(data[start:stop + 1].size / self.size_threshold))
+        if step < step_min:
+            step = step_min
+            self.widget.batch_widget.position_widget.step_series_widget.step_txt.setValue(step)
+        self.widget.batch_widget.surface_widget.surface_view.plot_surface(data[start:stop + 1:step, start_x:stop_x],
+                                                                          start, step)
+        self.update_3d_axis(data[start:stop + 1:step, start_x:stop_x])
+        
         
         self.update_axes_range()
         self.update_linear_region()
@@ -1115,7 +1131,10 @@ class BatchController(object):
         if self.model.batch_model.binning is None:
             return
 
-        stack_plot_widget = self.widget.batch_widget.stack_plot_widget
+        if self.widget.batch_widget.tab_view_widget.currentIndex() == 3:
+            stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget
+        else:
+            stack_plot_widget = self.widget.batch_widget.stack_plot_widget
         
         img_view_rect = stack_plot_widget.img_view.img_view_rect()
         start_x, stop_x = stack_plot_widget.img_view.x_bin_range
@@ -1137,13 +1156,18 @@ class BatchController(object):
             ticks = None
 
         # update range for both stack_plot_widget and stack_plot_fitting_widget
+        """
         for stack_plot_widget in [self.widget.batch_widget.stack_plot_widget, 
                                   self.widget.batch_widget.stack_plot_fitting_widget]:
             stack_plot_widget.img_view.bottom_axis_cake.setRange(min_tth, max_tth)
             stack_plot_widget.img_view.bottom_axis_cake.setTicks(ticks)
-    
+        """
+        stack_plot_widget.img_view.bottom_axis_cake.setRange(min_tth, max_tth)
+        stack_plot_widget.img_view.bottom_axis_cake.setTicks(ticks)
         
-
+        #self.widget.batch_widget.stack_plot_fitting_widget.img_view.bottom_axis_cake.setRange(min_tth, max_tth)
+        #self.widget.batch_widget.stack_plot_fitting_widget.img_view.bottom_axis_cake.setTicks(ticks)
+        
     def get_ticks(self, min_val, max_val, ticks_unit, base_unit, n_ticks=8):
         """
         Calculate ticks for x axis in case of non-linear scale
@@ -1218,9 +1242,12 @@ class BatchController(object):
         """
         if self.model.batch_model.data is None:
             return
-
-        stack_plot_widget = self.widget.batch_widget.stack_plot_widget
         
+        if self.widget.batch_widget.tab_view_widget.currentIndex() == 3: # if active tab is Fitting
+            stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget
+        else:
+            stack_plot_widget = self.widget.batch_widget.stack_plot_widget
+
         # if self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
         #     print("Using stack_plot_widget")
         # elif self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
@@ -1246,11 +1273,11 @@ class BatchController(object):
         max_y = v_scale * (bottom + height) + start
 
         stack_plot_widget.img_view.left_axis_cake.setRange(min_y, max_y)
-        
+        """
         for stack_plot_widget in [self.widget.batch_widget.stack_plot_widget, 
                                   self.widget.batch_widget.stack_plot_fitting_widget]:
             stack_plot_widget.img_view.left_axis_cake.setRange(min_y, max_y)
-
+        """
     def integrate(self):
         """
         Integrate images in the batch
@@ -1385,15 +1412,17 @@ class BatchFitController(BatchController):
         fit_results_sparse = np.array(self.model.batch_model.peak_search_result_df_filtered_sparse)
         
         #self.plot_peaks(self.model.batch_model.peak_fit_results[:, 1])
-        self.plot_peaks(fit_results[:, 1])
+        self.plot_peaks(fit_results)
         self.update_batch_fit_table()
     
-    def plot_peaks(self, peaks):     
+    def plot_peaks(self, fit_results):
         """
         Add scatter points to img_view from fitted peaks
         """
-        self.widget.batch_widget.stack_plot_fitting_widget.img_view.add_scatter_data(y=peaks, 
-                                                                             x=np.arange(0.5, len(peaks)+0.5))
+        #self.widget.batch_widget.stack_plot_fitting_widget.img_view.add_scatter_data(y=peaks, 
+        #                                                                     x=np.arange(0.5, len(peaks)+0.5))
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.add_scatter_data(y=fit_results[:, 1], 
+                                                                             x=fit_results[:, 0]+0.5)
         
     def update_batch_fit_table(self):
         """
