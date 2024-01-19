@@ -768,6 +768,7 @@ class BatchController(object):
         """
         Plot batch of diffraction patters taking into account scale and background subtraction
         """
+        self.clear_peaks()
         data = self.model.batch_model.data
         bkg = self.model.batch_model.bkg
         if data is None:
@@ -789,18 +790,17 @@ class BatchController(object):
 
         self.widget.batch_widget.stack_plot_fitting_widget.img_view.plot_image(data[start:stop + 1, start_x:stop_x], 
                                                                                True, [start_x, stop_x])
-        
-        
         # 3D view
-        step = int(str(self.widget.batch_widget.position_widget.step_series_widget.step_txt.text()))
-        step_min = max(1, int(data[start:stop + 1].size / self.size_threshold))
-        if step < step_min:
-            step = step_min
-            self.widget.batch_widget.position_widget.step_series_widget.step_txt.setValue(step)
-        self.widget.batch_widget.surface_widget.surface_view.plot_surface(data[start:stop + 1:step, start_x:stop_x],
-                                                                          start, step)
-        self.update_3d_axis(data[start:stop + 1:step, start_x:stop_x])
-        
+        if open_gl:
+            step = int(str(self.widget.batch_widget.position_widget.step_series_widget.step_txt.text()))
+            step_min = max(1, int(data[start:stop + 1].size / self.size_threshold))
+            if step < step_min:
+                step = step_min
+                self.widget.batch_widget.position_widget.step_series_widget.step_txt.setValue(step)
+            self.widget.batch_widget.surface_widget.surface_view.plot_surface(data[start:stop + 1:step, start_x:stop_x],
+                                                                              start, step)
+            self.update_3d_axis(data[start:stop + 1:step, start_x:stop_x])
+            
         
         self.update_axes_range()
         self.update_linear_region()
@@ -1130,12 +1130,13 @@ class BatchController(object):
     def update_x_axis(self):
         if self.model.batch_model.binning is None:
             return
+        #stack_plot_widget = self.widget.batch_widget.tab_view_widget.currentWidget()
 
-        if self.widget.batch_widget.tab_view_widget.currentIndex() == 3:
+        if self.widget.batch_widget.tab_view_widget.currentIndex() == 2:
             stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget
         else:
             stack_plot_widget = self.widget.batch_widget.stack_plot_widget
-        
+
         img_view_rect = stack_plot_widget.img_view.img_view_rect()
         start_x, stop_x = stack_plot_widget.img_view.x_bin_range
         binning = self.model.batch_model.binning[start_x: stop_x]
@@ -1242,17 +1243,12 @@ class BatchController(object):
         """
         if self.model.batch_model.data is None:
             return
-        
-        if self.widget.batch_widget.tab_view_widget.currentIndex() == 3: # if active tab is Fitting
+        # if active tab is Fitting
+        # note that this depends on tabs NOT being reordered
+        if self.widget.batch_widget.tab_view_widget.currentIndex() == 2: 
             stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget
         else:
             stack_plot_widget = self.widget.batch_widget.stack_plot_widget
-
-        # if self.widget.batch_widget.mode_widget.view_2d_btn.isChecked():
-        #     print("Using stack_plot_widget")
-        # elif self.widget.batch_widget.mode_widget.view_fitting_btn.isChecked():
-        #     print("Using stack_plot_fitting_widget")
-        #     stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget
 
         y = self.widget.batch_widget.position_widget.step_series_widget.slider.value()
         start, stop, step = self.widget.batch_widget.position_widget.step_series_widget.get_image_range()
@@ -1274,6 +1270,7 @@ class BatchController(object):
 
         stack_plot_widget.img_view.left_axis_cake.setRange(min_y, max_y)
         """
+        # this implementation would sync the 2D and Fitting views
         for stack_plot_widget in [self.widget.batch_widget.stack_plot_widget, 
                                   self.widget.batch_widget.stack_plot_fitting_widget]:
             stack_plot_widget.img_view.left_axis_cake.setRange(min_y, max_y)
@@ -1408,37 +1405,40 @@ class BatchFitController(BatchController):
         self.model.batch_model.find_peaks(bounds = regionBounds)
         #print(self.model.batch_model.peak_fit_results)
         
-        fit_results = np.array(self.model.batch_model.peak_search_result_df_filtered)
-        fit_results_sparse = np.array(self.model.batch_model.peak_search_result_df_filtered_sparse)
+        fit_results = np.array(self.model.batch_model.peak_search_result_df_filtered[['file_name', 'x0']])
+        fit_results_sparse = np.array(self.model.batch_model.peak_search_result_df_filtered_sparse[['file_name', 'x0']])
         
         #self.plot_peaks(self.model.batch_model.peak_fit_results[:, 1])
-        self.plot_peaks(fit_results)
+        self.plot_peaks(fit_results, fit_results_sparse)
         self.update_batch_fit_table()
     
-    def plot_peaks(self, fit_results):
+    def plot_peaks(self, fit_results, fit_results_sparse):
         """
         Add scatter points to img_view from fitted peaks
         """
         #self.widget.batch_widget.stack_plot_fitting_widget.img_view.add_scatter_data(y=peaks, 
         #                                                                     x=np.arange(0.5, len(peaks)+0.5))
-        self.widget.batch_widget.stack_plot_fitting_widget.img_view.add_scatter_data(y=fit_results[:, 1], 
-                                                                             x=fit_results[:, 0]+0.5)
-        
+        #self.widget.batch_widget.stack_plot_fitting_widget.img_view.add_scatter_data(y=fit_results[:, 1], 
+        #                                                                     x=fit_results[:, 0]+0.5)
+        self.widget.batch_widget.stack_plot_fitting_widget.img_view.add_scatter_data(y=fit_results_sparse[:, 1],
+                                                                             x=np.arange(0.5, len(fit_results_sparse[:, 0])+0.5))
     def update_batch_fit_table(self):
         """
         Update Fitting Results table from fitted peaks
         """
-        print(np.array(self.model.batch_model.peak_search_result_df_filtered_sparse))
-        self.widget.batch_widget.fitting_results_table_widget.table.setData(np.array(self.model.batch_model.peak_search_result_df_filtered_sparse))        
+        #print(np.array(self.model.batch_model.peak_search_result_df_filtered_sparse))
+        print(self.model.batch_model.peak_search_result_df_filtered_sparse)
+        columns_to_plot = ['file_name', 'tth', 'tth_err', 'width', 'a']
+        self.widget.batch_widget.fitting_results_table_widget.table.setData(np.array(self.model.batch_model.peak_search_result_df_filtered_sparse[columns_to_plot]))
         # temporarily hardcode column names
-        columns = ['File', '2θ', '2θ error', 'Width (2σ)', 'Amplitude']
-        self.widget.batch_widget.fitting_results_table_widget.table.setHorizontalHeaderLabels(columns)
+        column_names = ['File', '2θ', '2θ error', 'Width (2σ)', 'Amplitude']
+        self.widget.batch_widget.fitting_results_table_widget.table.setHorizontalHeaderLabels(column_names)
         self.widget.batch_widget.fitting_results_table_widget.table.setFormat("%.3f", column=1)
         self.widget.batch_widget.fitting_results_table_widget.table.setFormat("%.3f", column=2)
         self.widget.batch_widget.fitting_results_table_widget.table.setFormat("%.3f", column=3)
         self.widget.batch_widget.fitting_results_table_widget.table.setFormat("%.0f", column=4)
         # set column width
-        for column_index in range(len(columns)):        
+        for column_index in range(len(columns_to_plot)):
             self.widget.batch_widget.fitting_results_table_widget.table.setColumnWidth(column_index, 100)        
     
     def clear_peaks(self):
@@ -1447,9 +1447,12 @@ class BatchFitController(BatchController):
         """
         self.model.batch_model.peak_fit_results = []
         self.model.batch_model.peak_fit_errs = []
-        del(self.model.batch_model.peak_search_result_df)
-        del(self.model.batch_model.peak_search_result_df_filtered)
-        del(self.model.batch_model.peak_search_result_df_filtered_sparse)
+        try:            
+            del(self.model.batch_model.peak_search_result_df)
+            del(self.model.batch_model.peak_search_result_df_filtered)
+            del(self.model.batch_model.peak_search_result_df_filtered_sparse)
+        except:
+            pass
         self.widget.batch_widget.fitting_results_table_widget.table.clear()
         self.widget.batch_widget.stack_plot_fitting_widget.img_view.clear_scatter_plot()
         

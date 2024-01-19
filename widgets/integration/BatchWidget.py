@@ -60,11 +60,11 @@ class BatchWidget(QtWidgets.QWidget):
         self.tab_view_widget = QtWidgets.QTabWidget()
         self.tab_view_widget.addTab(self.file_view_widget, "Files")
         self.tab_view_widget.addTab(self.stack_plot_widget, "2D")
+        self.tab_view_widget.addTab(self.stack_plot_fitting_widget, "Fitting")
+        self.tab_view_widget.addTab(self.fitting_results_table_widget, 'Fitting Results')
         if open_gl:
             self.surface_widget = BatchSurfaceWidget()
             self.tab_view_widget.addTab(self.surface_widget, "3D")
-        self.tab_view_widget.addTab(self.stack_plot_fitting_widget, "Fitting")
-        self.tab_view_widget.addTab(self.fitting_results_table_widget, 'Fitting Results')
 
         self.options_widget = BatchOptionsWidget()
 
