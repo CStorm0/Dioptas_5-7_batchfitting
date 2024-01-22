@@ -411,7 +411,7 @@ class BatchController(object):
             self.widget.batch_widget.stack_plot_widget.img_view.show_all_visible_cake_phases(
                 self.widget.phase_widget.phase_show_cbs)
             self.widget.batch_widget.stack_plot_fitting_widget.img_view.show_all_visible_cake_phases(
-                self.widget.phase_widget.phase_show_cbs)
+                self.widget.phase_widget.phase_show_cbs)            
             self.widget.batch_widget.control_widget.phases_btn.setText('Hide Phases')
         else:
             self.widget.batch_widget.stack_plot_widget.img_view.hide_all_cake_phases()
@@ -1245,7 +1245,7 @@ class BatchController(object):
             return
         # if active tab is Fitting
         # note that this depends on tabs NOT being reordered
-        if self.widget.batch_widget.tab_view_widget.currentIndex() == 2: 
+        if self.widget.batch_widget.tab_view_widget.currentIndex() == 2:
             stack_plot_widget = self.widget.batch_widget.stack_plot_fitting_widget
         else:
             stack_plot_widget = self.widget.batch_widget.stack_plot_widget

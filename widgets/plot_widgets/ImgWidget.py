@@ -538,7 +538,6 @@ class IntegrationBatchWidget(IntegrationCakeWidget):
     Class describe a widget for 2D image (Theta vs ImageNumber) of batch integration window.
 
     """
-
     def __init__(self, pg_layout, orientation='vertical'):
         super(IntegrationBatchWidget, self).__init__(pg_layout, orientation)
         self.create_horizontal_line()

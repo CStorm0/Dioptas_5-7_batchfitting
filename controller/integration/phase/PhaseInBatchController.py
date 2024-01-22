@@ -23,12 +23,16 @@ class PhaseInBatchController(object):
         self.phase_model = self.model.phase_model
         self.batch_widget = batch_widget
         self.batch_view_widget = batch_widget.stack_plot_widget.img_view  # type: IntegrationImgWidget
+        self.batch_fitting_view_widget = batch_widget.stack_plot_fitting_widget.img_view  # type: IntegrationImgWidget
 
         self.connect()
 
     def connect(self):
         self.phase_model.phase_added.connect(self.add_phase_plot)
+        
         self.model.phase_model.phase_removed.connect(self.batch_view_widget.del_cake_phase)
+        # CStorm
+        self.model.phase_model.phase_removed.connect(self.batch_fitting_view_widget.del_cake_phase)
 
         self.phase_model.phase_changed.connect(self.update_phase_lines)
         self.phase_model.phase_changed.connect(self.update_phase_color)
@@ -80,10 +84,14 @@ class PhaseInBatchController(object):
 
         self.batch_view_widget.add_cake_phase(cake_line_positions, cake_line_intensities,
                                               self.phase_model.phase_colors[-1])
-
+        # CStorm
+        self.batch_fitting_view_widget.add_cake_phase(cake_line_positions, cake_line_intensities,
+                                              self.phase_model.phase_colors[-1])
     def update_phase_lines(self, ind):
         cake_line_positions, cake_line_intensities = self.get_phase_position_and_intensities(ind)
         self.batch_view_widget.update_phase_intensities(ind, cake_line_positions, cake_line_intensities)
+        # CStorm
+        self.batch_fitting_view_widget.update_phase_intensities(ind, cake_line_positions, cake_line_intensities)
 
     def update_all_phases(self):
         for ind in range(len(self.phase_model.phases)):
@@ -91,18 +99,28 @@ class PhaseInBatchController(object):
 
     def update_phase_color(self, ind):
         self.batch_view_widget.set_cake_phase_color(ind, self.model.phase_model.phase_colors[ind])
+        # CStorm
+        self.batch_fitting_view_widget.set_cake_phase_color(ind, self.model.phase_model.phase_colors[ind])
 
     def update_phase_visible(self, ind):
         if self.phase_model.phase_visible[ind] and self.batch_widget.control_widget.phases_btn.isChecked():
-            self.batch_view_widget.show_cake_phase(ind)
+            self.batch_view_widget.show_cake_phase(ind)            
+            # CStorm
+            self.batch_fitting_view_widget.show_cake_phase(ind)
         else:
             self.batch_view_widget.hide_cake_phase(ind)
+            # CStorm
+            self.batch_fitting_view_widget.hide_cake_phase(ind)
 
     def reflection_added(self, ind):
         self.batch_view_widget.phases[ind].add_line()
+        # CStorm
+        self.batch_fitting_view_widget.phases[ind].add_line()
 
     def reflection_deleted(self, phase_ind, reflection_ind):
         self.batch_view_widget.phases[phase_ind].delete_line(reflection_ind)
+        # CStorm
+        self.batch_fitting_view_widget.phases[phase_ind].delete_line(reflection_ind)
 
     def _get_x_range(self):
         """
